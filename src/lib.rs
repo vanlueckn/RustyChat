@@ -1,4 +1,5 @@
 mod websocket;
+
 use ts3plugin::*;
 
 struct RustyChatTsPlugin;

@@ -1,11 +1,12 @@
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct ProtocolMessage {
+pub struct ProtocolMessage {
     command: u32,
     server_unique_identifier: Option<String>,
-    parameter: Option<String>,
+    parameter: Option<ParamMessageType>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -24,11 +25,36 @@ struct InitiateParameter {
     channel_password: String,
     sound_pack: String,
     swiss_channel_ids: Vec<u64>,
+    #[serde(default = "default_talk_state")]
     send_talk_states: bool,
+    #[serde(default = "default_radio_traffic_state")]
     send_radio_traffic_states: bool,
+    #[serde(default = "default_ultra_short_range_distance")]
     ultra_short_range_distance: f32,
+    #[serde(default = "default_short_range_distance")]
     short_range_distance: f32,
+    #[serde(default = "default_long_range_distance")]
     long_range_distance: f32,
+}
+
+fn default_talk_state() -> bool {
+    true
+}
+
+fn default_radio_traffic_state() -> bool {
+    false
+}
+
+fn default_ultra_short_range_distance() -> f32 {
+    1800.0
+}
+
+fn default_short_range_distance() -> f32 {
+    3000.0
+}
+
+fn default_long_range_distance() -> f32 {
+    8000.0
 }
 
 #[derive(Serialize, Deserialize)]
@@ -54,16 +80,36 @@ struct SelfStateUpdateParameter {
     position: Vector3,
     rotation: f32,
     voice_range: f32,
+    #[serde(default = "default_is_alive")]
     is_alive: bool,
-    echo: EchoEffect,
+    echo: Option<EchoEffect>,
+}
+
+fn default_is_alive() -> bool {
+    true
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 struct EchoEffect {
+    #[serde(default = "default_duration")]
     duration: i32,
+    #[serde(default = "default_rolloff")]
     rolloff: f32,
-    delay: int32,
+    #[serde(default = "default_delay")]
+    delay: i32,
+}
+
+fn default_duration() -> i32 {
+    100
+}
+
+fn default_rolloff() -> f32 {
+    0.3
+}
+
+fn default_delay() -> i32 {
+    25
 }
 
 #[derive(Serialize, Deserialize)]
@@ -73,16 +119,22 @@ struct PlayerStateUpdateParameter {
     position: Vector3,
     rotation: f32,
     voice_range: f32,
+    #[serde(default = "default_is_alive")]
     is_alive: bool,
     volume_override: Option<f32>,
     distance_culled: bool,
-    muffle: MuffleEffect,
+    muffle: Option<MuffleEffect>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 struct MuffleEffect {
+    #[serde(default = "default_intensity")]
     intensity: i32,
+}
+
+fn default_intensity() -> i32 {
+    10
 }
 
 #[derive(Serialize, Deserialize)]
@@ -167,7 +219,12 @@ struct Tower {
     x: f32,
     y: f32,
     z: f32,
+    #[serde(default = "default_range")]
     range: f32,
+}
+
+fn default_range() -> f32 {
+    8000.0
 }
 
 #[derive(Serialize, Deserialize)]
@@ -214,6 +271,8 @@ struct StopMegaphoneCommunicationParameter {
     name: String,
 }
 
+#[derive(Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
 enum GameInstanceState {
     NotConnected = 0,
     Connected = 1,
@@ -221,6 +280,8 @@ enum GameInstanceState {
     InSwissChannel = 3,
 }
 
+#[derive(Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
 enum RadioType {
     None = 1,
     ShortRange = 2,
@@ -229,6 +290,8 @@ enum RadioType {
     UltraShortRange = 16,
 }
 
+#[derive(Serialize_repr, Deserialize_repr)]
+#[repr(u8)]
 enum Error {
     OK = 0,
     InvalidJson = 1,
@@ -239,4 +302,40 @@ enum Error {
     InvalidValue = 6,
     ServerBlacklisted = 100,
     ServerUnderlicensed = 101,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct Vector3 {
+    x: f32,
+    y: f32,
+    z: f32,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+#[serde(untagged)]
+enum ParamMessageType {
+    PluginStateParameter(PluginStateParameter),
+    InitiateParameter(InitiateParameter),
+    InstanceStateParameter(InstanceStateParameter),
+    SoundStateParameter(SoundStateParameter),
+    SelfStateUpdateParameter(SelfStateUpdateParameter),
+    PlayerStateUpdateParameter(PlayerStateUpdateParameter),
+    BulkUpdateParameter(BulkUpdateParameter),
+    RemovePlayerParameter(RemovePlayerParameter),
+    TalkStateParameter(TalkStateParameter),
+    PlaySoundParameter(PlaySoundParameter),
+    StopSoundParameter(StopSoundParameter),
+    PhoneCommunicationUpdateParameter(PhoneCommunicationUpdateParameter),
+    StopPhoneCommunicationParameter(StopPhoneCommunicationParameter),
+    RadioCommunicationUpdateParameter(RadioCommunicationUpdateParameter),
+    StopRadioCommunicationParameter(StopRadioCommunicationParameter),
+    RadioTowerUpdateParameter(RadioTowerUpdateParameter),
+    RadioTrafficStateParameter(RadioTrafficStateParameter),
+    AddRadioChannelMemberParameter(AddRadioChannelMemberParameter),
+    UpdateRadioChannelMembersParameter(UpdateRadioChannelMembersParameter),
+    RemoveRadioChannelMemberParameter(RemoveRadioChannelMemberParameter),
+    MegaphoneCommunicationUpdateParameter(MegaphoneCommunicationUpdateParameter),
+    StopMegaphoneCommunicationParameter(StopMegaphoneCommunicationParameter),
 }

@@ -1,4 +1,6 @@
-use simple_websockets::{Event, EventHub, Responder};
+pub mod protocol;
+
+use simple_websockets::{Event, EventHub, Message, Responder};
 use std::collections::HashMap;
 
 pub fn start_listen() {
@@ -28,10 +30,28 @@ fn websocket_loop(event_hub: &EventHub, clients: &mut HashMap<u64, Responder>) {
                     "Received a message from client #{}: {:?}",
                     client_id, message
                 );
+
+                match message {
+                    Message::Text(text) => {
+                        let parsed_message: serde_json::Result<protocol::ProtocolMessage> =
+                            serde_json::from_str(&text.to_owned());
+
+                        match parsed_message {
+                            Ok(parsed_message) => {}
+                            Err(err) => {
+                                println!("Error parsing message: {:?}", err);
+                            }
+                        }
+                    }
+                    Message::Binary(bin) => {
+                        println!("Received binary message: {:?}", bin);
+                    }
+                }
+
                 // retrieve this client's `Responder`:
                 let responder = clients.get(&client_id).unwrap();
                 // echo the message back:
-                responder.send(message);
+                responder.send(Message::Text("Hello World".to_owned()));
             }
         }
     }
