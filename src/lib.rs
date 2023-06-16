@@ -1,9 +1,9 @@
+mod websocket;
 use ts3plugin::*;
 
 struct RustyChatTsPlugin;
 
 impl Plugin for RustyChatTsPlugin {
-
     fn name() -> String {
         String::from("RustyChat")
     }
@@ -34,6 +34,7 @@ impl Plugin for RustyChatTsPlugin {
 
     fn new(api: &mut TsApi) -> Result<Box<Self>, InitError> {
         api.log_or_print("Inited", "RustyChatTsPlugin", LogLevel::Info);
+        websocket::start_listen();
         Ok(Box::new(Self))
     }
 
