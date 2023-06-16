@@ -934,9 +934,8 @@ checksum = "3528ecfd12c466c6f163363caf2d02a71161dd5e1cc6ae7b34207ea2d42d81ed"
 
 [[package]]
 name = "ts3plugin"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "99c06ceb0a373f31e4b53abc4df9be8cbdd7bac5fb800c4acb0af40b62257b2b"
+version = "0.3.0"
+source = "git+https://github.com/ClutchFred/rust-ts3plugin#10a674badab53122c1417d8a10dbf2360b8a837b"
 dependencies = [
  "chrono",
  "lazy_static 0.2.11",
