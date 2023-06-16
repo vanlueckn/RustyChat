@@ -25,6 +25,7 @@ url = "2.4.0"
 serde_repr = "0.1"
 iced = "0.9"
 aych-delay = "0.1.1"
+biquad = "0.4.2"
 
 [profile.release]
 opt-level = 'z'   # Optimize for size
