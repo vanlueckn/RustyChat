@@ -1,3 +1,4 @@
+mod gui;
 mod websocket;
 
 use ts3plugin::*;
@@ -36,6 +37,7 @@ impl Plugin for RustyChatTsPlugin {
     fn new(api: &mut TsApi) -> Result<Box<Self>, InitError> {
         api.log_or_print("Inited", "RustyChatTsPlugin", LogLevel::Info);
         websocket::start_listen();
+        gui::show();
         Ok(Box::new(Self))
     }
 
@@ -45,18 +47,3 @@ impl Plugin for RustyChatTsPlugin {
 }
 
 create_plugin!(RustyChatTsPlugin);
-
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
