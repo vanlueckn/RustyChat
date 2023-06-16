@@ -4,3 +4,5 @@ release/
 rls/
 *.o
 .vscode/
+rustychat.ts3_plugin
+ts3_package/plugins/*.dll
