@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "PascalCase")]
 struct ProtocolMessage {
     command: u32,
-    server_unique_identifier: String,
-    parameter: String,
+    server_unique_identifier: Option<String>,
+    parameter: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -74,7 +74,7 @@ struct PlayerStateUpdateParameter {
     rotation: f32,
     voice_range: f32,
     is_alive: bool,
-    volume_override: f32,
+    volume_override: Option<f32>,
     distance_culled: bool,
     muffle: MuffleEffect,
 }
@@ -124,7 +124,7 @@ struct StopSoundParameter {
 struct PhoneCommunicationUpdateParameter {
     name: String,
     signal_strength: i32,
-    volume: f32,
+    volume: Option<f32>,
     direct: bool,
     relayed_by: Vec<String>,
 }
@@ -142,7 +142,7 @@ struct RadioCommunicationUpdateParameter {
     sender_radio_type: RadioType,
     own_radio_type: RadioType,
     play_mic_click: bool,
-    volume: f32,
+    volume: Option<f32>,
     direct: bool,
     secondary: bool,
     relayed_by: Vec<String>,
@@ -205,7 +205,7 @@ struct RemoveRadioChannelMemberParameter {
 struct MegaphoneCommunicationUpdateParameter {
     name: String,
     range: f32,
-    volume: f32,
+    volume: Option<f32>,
 }
 
 #[derive(Serialize, Deserialize)]
