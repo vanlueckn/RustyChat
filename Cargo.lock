@@ -96,6 +96,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
+name = "aych-delay"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c2d0ec02c21e3cd971f81f20baa707514d063799a0dedd70c22ca0f73e12bcf0"
+
+[[package]]
 name = "backtrace"
 version = "0.3.67"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2102,6 +2108,7 @@ checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
 name = "rustychat"
 version = "0.1.0"
 dependencies = [
+ "aych-delay",
  "iced",
  "lazy_static 1.4.0",
  "serde",
@@ -2559,7 +2566,7 @@ dependencies = [
 [[package]]
 name = "ts3plugin"
 version = "0.3.0"
-source = "git+https://github.com/ClutchFred/rust-ts3plugin#10a674badab53122c1417d8a10dbf2360b8a837b"
+source = "git+https://github.com/ClutchFred/rust-ts3plugin#000b951edc3f62b63f0eebde84b78c959b7378fb"
 dependencies = [
  "chrono",
  "lazy_static 0.2.11",

@@ -1,3 +1,4 @@
+mod audiofx;
 mod gui;
 mod websocket;
 

@@ -14,7 +14,7 @@ name = "rustychat"
 crate-type = ["cdylib"]
 
 [dependencies]
-serde = {version = "1.0", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 uuid = { version = "1.3.4", features = ["serde", "v4"] }
 ts3plugin = { git = "https://github.com/ClutchFred/rust-ts3plugin" }
@@ -24,13 +24,14 @@ tungstenite = "0.19.0"
 url = "2.4.0"
 serde_repr = "0.1"
 iced = "0.9"
+aych-delay = "0.1.1"
 
 [profile.release]
-opt-level = 'z'     # Optimize for size
-lto = true          # Enable link-time optimization
-codegen-units = 1   # Reduce number of codegen units to increase optimizations
-panic = 'abort'     # Abort on panic
-strip = true        # Strip symbols from binary*
+opt-level = 'z'   # Optimize for size
+lto = true        # Enable link-time optimization
+codegen-units = 1 # Reduce number of codegen units to increase optimizations
+panic = 'abort'   # Abort on panic
+strip = true      # Strip symbols from binary*
 
 [[bin]]
 name = "uitest"
