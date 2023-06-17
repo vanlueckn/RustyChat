@@ -32,13 +32,16 @@ impl Plugin for RustyChatTsPlugin {
     }
 
     fn configurable() -> ConfigureOffer {
-        ConfigureOffer::No
+        ConfigureOffer::QtThread
+    }
+
+    fn configure(&mut self, api: &mut TsApi) {
+        gui::show();
     }
 
     fn new(api: &mut TsApi) -> Result<Box<Self>, InitError> {
         api.log_or_print("Inited", "RustyChatTsPlugin", LogLevel::Info);
         websocket::start_listen();
-        gui::show();
         Ok(Box::new(Self))
     }
 
