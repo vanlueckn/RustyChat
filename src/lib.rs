@@ -6,13 +6,17 @@ mod game;
 use std::sync::{Arc, Mutex};
 
 use audiofx::init_high_pass;
+use iir_filters::filter::DirectForm2Transposed;
 use game::GameHandler;
 use ts3plugin::*;
 
-
 struct RustyChatTsPlugin {
+    low_pass: DirectForm2Transposed,
+    band_pass: DirectForm2Transposed,
+    high_pass: DirectForm2Transposed,
     rusty_handler: Arc<Mutex<GameHandler>>
 }
+
 
 impl Plugin for RustyChatTsPlugin {
     fn name() -> String {
@@ -61,18 +65,34 @@ impl Plugin for RustyChatTsPlugin {
         websocket::start_listen(game_ref.clone());
         
 
-        Ok(Box::new(Self { rusty_handler: game_ref.clone()}))
+        let low_pass = audiofx::init_lowpass();
+        let band_pass = audiofx::init_band_pass();
+        let high_pass = audiofx::init_high_pass();
+
+        Ok(Box::new(Self {
+            low_pass,
+            band_pass,
+            high_pass,
+            rusty_handler: game_ref.clone()
+        }))
+
+
+
+
+
     }
 
-    fn post_process_voice_data(&mut self, api: &mut TsApi, server_id: ServerId,
-            connection_id: ConnectionId, samples: &mut [i16], channels: i32,
-            channel_speaker_array: &[Speaker], channel_fill_mask: &mut u32) {
-                audiofx::process_radio(samples, &mut audiofx::init_band_pass(), &mut init_high_pass());
-    }
-
-    fn playback_voice_data(&mut self, api: &mut TsApi, server_id: ServerId,
-            connection_id: ConnectionId, samples: &mut [i16], channels: i32) {
-        
+    fn post_process_voice_data(
+        &mut self,
+        api: &mut TsApi,
+        server_id: ServerId,
+        connection_id: ConnectionId,
+        samples: &mut [i16],
+        channels: i32,
+        channel_speaker_array: &[Speaker],
+        channel_fill_mask: &mut u32,
+    ) {
+        audiofx::process_radio(samples, &mut self.band_pass, &mut self.high_pass);
     }
 
     fn captured_voice_data(&mut self, api: &mut TsApi, server_id: ServerId,
