@@ -1,36 +1,41 @@
-use aych_delay::{Delay, Settings};
-use biquad::*;
-pub fn process_echo(input: &[f32], output: &mut [f32]) {
-    let mut delay = Delay::new(Settings {
-        delay_time: 166.66,
-        feedback: 0.75,
-        width: 0.5,
-        lowpass_filter: 22000.0,
-        highpass_filter: 300.0,
-        dry_wet_mix: 0.5,
-        output_level: 0.75,
-        ..Settings::default()
-    });
+use libdsp_sys::root::DSP::DigitalDelay;
 
-    delay.process(input, output);
+struct DelayState {
+    delay: Option<DigitalDelay>,
 }
 
-pub fn process_lowpass(input: &mut [f32]) {
-    // Cutoff and sampling frequencies
-    let f0 = 10.hz();
-    let fs = 1.khz();
+static mut DELAY_STATE: DelayState = DelayState { delay: None };
 
-    // Create coefficients for the biquads
-    let coeffs =
-        Coefficients::<f32>::from_params(Type::LowPass, fs, f0, Q_BUTTERWORTH_F32).unwrap();
+const DELAY_AMOUNT: usize = 20;
+const DELAY_FEEDBACK: f32 = 0.5;
+const DELAY_WET: f32 = 0.5;
 
-    // Create two different biquads
-    let mut biquad1 = DirectForm1::<f32>::new(coeffs);
+pub fn init_delay() {
+    unsafe {
+        let mut delay: DigitalDelay = DigitalDelay::new(DELAY_AMOUNT, DELAY_FEEDBACK, DELAY_WET);
+        DELAY_STATE.delay = Some(delay);
+    }
+}
 
-    let input_cloned = input.to_vec();
+pub fn process_delay(input: &mut [f32]) {
+    unsafe {
+        if DELAY_STATE.delay.is_none() {
+            init_delay();
+        }
+        let mut delay = DELAY_STATE.delay.unwrap();
 
-    // Run for all the inputs
-    for (index, t_elem) in input_cloned.iter().enumerate() {
-        input[index] = biquad1.run(*t_elem);
+        for (i, &sample) in input.to_vec().iter().enumerate() {
+            input[i] = delay.getNextSample(sample);
+        }
+    }
+}
+
+pub fn process_lowpass(input: &mut [f32], alpha: f32) {
+    let mut prev_output = 0.0;
+
+    for (i, &sample) in input.to_vec().iter().enumerate() {
+        let filtered_sample = alpha * sample + (1.0 - alpha) * prev_output;
+        input[i] = filtered_sample;
+        prev_output = filtered_sample;
     }
 }
