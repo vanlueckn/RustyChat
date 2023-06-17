@@ -2164,6 +2164,7 @@ dependencies = [
  "tungstenite",
  "url",
  "uuid",
+ "win32console",
 ]
 
 [[package]]
@@ -3041,6 +3042,15 @@ name = "widestring"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "17882f045410753661207383517a6f62ec3dbeb6a4ed2acce01f0728238d1983"
+
+[[package]]
+name = "win32console"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9e69bbdf01990d3e8b9f5a7c4667feda30c63be20aa2f8e66b2f4efb6c06f673"
+dependencies = [
+ "winapi",
+]
 
 [[package]]
 name = "winapi"
