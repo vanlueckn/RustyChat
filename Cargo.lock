@@ -1237,6 +1237,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "iir_filters"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "41b6b00392a4d7516ab66445a4bca1164bf523e47d971d237d174490f4f6d92d"
+dependencies = [
+ "num-complex",
+ "num-traits",
+ "thiserror",
+]
+
+[[package]]
 name = "indexmap"
 version = "1.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1607,6 +1618,15 @@ checksum = "4703ad64153382334aa8db57c637364c322d3372e097840c72000dabdcf6156e"
 dependencies = [
  "num-integer",
  "num-iter",
+ "num-traits",
+]
+
+[[package]]
+name = "num-complex"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "02e0d21255c828d6f128a1e41534206671e8c3ea0c62f32291e808dc82cff17d"
+dependencies = [
  "num-traits",
 ]
 
@@ -2133,6 +2153,7 @@ name = "rustychat"
 version = "0.1.0"
 dependencies = [
  "iced",
+ "iir_filters",
  "lazy_static 1.4.0",
  "libdsp-sys",
  "serde",

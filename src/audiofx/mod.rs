@@ -1,10 +1,15 @@
+use iir_filters::filter::DirectForm2Transposed;
+use iir_filters::filter::Filter;
+use iir_filters::filter_design::butter;
+use iir_filters::filter_design::FilterType;
+use iir_filters::sos::zpk2sos;
 use libdsp_sys::root::DSP::{BiQuadFilter, DigitalDelay};
 
 const DELAY_AMOUNT: usize = 50;
 const DELAY_FEEDBACK: f32 = 0.7;
 const DELAY_WET: f32 = 0.7;
 const I16_MAX: f32 = (i16::MAX as f32) + 1.0;
-
+const I16_MAX_64: f64 = (i16::MAX as f64) + 1.0;
 fn init_delay() -> DigitalDelay {
     unsafe { DigitalDelay::new(DELAY_AMOUNT, DELAY_FEEDBACK, DELAY_WET) }
 }
@@ -17,17 +22,51 @@ pub fn process_delay(input: &mut [i16], delay: &mut DigitalDelay) {
     }
 }
 
-const CUTOFF_FREQUENCY: f32 = 1000.0;
+const CUTOFF_FREQUENCY: f64 = 0.5;
 const SAMPLE_FREQUENCY: f64 = 48000.0;
 
-fn init_lowpass() -> BiQuadFilter {
-    unsafe { BiQuadFilter::new(1, CUTOFF_FREQUENCY as i32, SAMPLE_FREQUENCY) }
+pub fn init_lowpass() -> DirectForm2Transposed {
+    let order = 5;
+    let zpk = butter(
+        order,
+        FilterType::LowPass(CUTOFF_FREQUENCY),
+        SAMPLE_FREQUENCY,
+    )
+    .unwrap();
+    let sos = zpk2sos(&zpk, None).unwrap();
+
+    DirectForm2Transposed::new(&sos)
 }
 
-pub fn process_lowpass(input: &mut [i16], lowpass: &mut BiQuadFilter) {
-    unsafe {
-        for sample in input.iter_mut() {
-            *sample = (lowpass.nextSample(*sample as f32 / I16_MAX, 1) * I16_MAX) as i16;
-        }
+pub fn process_lowpass(input: &mut [i16], dft2: &mut DirectForm2Transposed) {
+    for sample in input.iter_mut() {
+        *sample = (dft2.filter(*sample as f64 / I16_MAX_64) * I16_MAX_64) as i16;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_echo_filter() {
+        let mut delay = init_delay();
+
+        let mut input = [2000_i16; 100];
+
+        process_delay(&mut input, &mut delay);
+
+        assert_ne!(input, [2000_i16; 100]);
+    }
+
+    #[test]
+    fn test_lowpass_filter() {
+        let mut lowpass = init_lowpass();
+
+        let mut input = [2000_i16; 100];
+
+        process_lowpass(&mut input, &mut lowpass);
+
+        assert_ne!(input, [2000_i16; 100]);
     }
 }
