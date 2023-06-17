@@ -81,8 +81,11 @@ pub fn process_radio(
     high_pass: &mut DirectForm2Transposed,
 ) {
     for sample in input.iter_mut() {
-        *sample = (high_pass.filter(*sample as f64 / I16_MAX_64) * I16_MAX_64) as i16;
-        *sample = (band_pass.filter(*sample as f64 / I16_MAX_64) * I16_MAX_64) as i16;
+        let mut sample_f64 = *sample as f64 / I16_MAX_64;
+        sample_f64 = (sample_f64 + 1.0).rem_euclid(2.0);
+        sample_f64 = high_pass.filter(sample_f64);
+        sample_f64 = band_pass.filter(sample_f64);
+        *sample = (sample_f64 * I16_MAX_64) as i16;
     }
 }
 
