@@ -1320,9 +1320,10 @@ checksum = "f92be4933c13fd498862a9e02a3055f8a8d9c039ce33db97306fd5a6caa7f29b"
 [[package]]
 name = "libdsp-sys"
 version = "0.1.0"
-source = "git+https://github.com/vanlueckn/rust-lib-dsp#b5e6c8c62c5f831269e15934eb1a86c682fe1157"
+source = "git+https://github.com/vanlueckn/rust-lib-dsp#8b102c415bd30fe17a2e3ec272f29ff08a654315"
 dependencies = [
  "cc",
+ "cmake",
  "glob",
  "libc",
  "pkg-config",
