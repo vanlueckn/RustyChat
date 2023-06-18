@@ -154,11 +154,7 @@ impl Plugin for RustyChatTsPlugin {
         channels: i32,
         send: &mut bool,
     ) -> bool {
-        audiofx::process_radio(
-            samples,
-            &mut audiofx::init_band_pass(),
-            &mut init_high_pass(),
-        );
+       
         true
     }
 
