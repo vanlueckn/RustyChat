@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 
 use self::protocol::{
     Command, InitiateParameter, ParamMessageType, PlayerStateUpdateParameter, PluginStateParameter,
-    ProtocolMessage, SelfStateUpdateParameter, SoundStateParameter,
+    ProtocolMessage, SelfStateUpdateParameter, SoundStateParameter, TalkStateParameter,
 };
 
 const FAKE_SALTY_VERSION: &str = "2.3.6";
@@ -355,7 +355,7 @@ fn handle_sound_stop(message: ParamMessageType) {
 }
 
 //Events RustyChat Outgoing to be handled by the plugin:
-// 1. SoundState (on mic and speaker toggle)
+// 1. SoundState (on mic and speaker toggle) X
 // 2. TalkState (on start and on stop talking)
 // 3. RadioTrafficState (Sent by the plugin when radio traffic is received, breaks up or ends.)
 
@@ -377,6 +377,28 @@ pub fn on_sound_state_toggle(
         command: Command::SoundState,
         server_unique_identifier: Some(server_id.to_owned()),
         parameter: Some(sound_state_message),
+    };
+
+    let message = serde_json::to_string(&message).unwrap();
+
+    let client_id = clients_by_instance.get(server_id).unwrap();
+
+    clients
+        .get(&client_id)
+        .unwrap()
+        .send(Message::Text(message));
+}
+
+pub fn on_talk_state_toggle(server_id: &String, is_talking: bool, name: &str) {
+    let talk_state_message = ParamMessageType::TalkStateParameter(TalkStateParameter {
+        is_talking,
+        name: name.to_owned(),
+    });
+
+    let message = ProtocolMessage {
+        command: Command::TalkState,
+        server_unique_identifier: Some(server_id.to_owned()),
+        parameter: Some(talk_state_message),
     };
 
     let message = serde_json::to_string(&message).unwrap();
