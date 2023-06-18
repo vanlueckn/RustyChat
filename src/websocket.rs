@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 
 use self::protocol::{
     Command, InitiateParameter, ParamMessageType, PlayerStateUpdateParameter, PluginStateParameter,
-    ProtocolMessage, SelfStateUpdateParameter,
+    ProtocolMessage, SelfStateUpdateParameter, SoundStateParameter,
 };
 
 const FAKE_SALTY_VERSION: &str = "2.3.6";
@@ -17,22 +17,20 @@ struct InstanceState {
     player_states_by_instance: HashMap<String, Vec<PlayerStateUpdateParameter>>,
 }
 
+static clients: HashMap<u64, Responder> = HashMap::new();
+static clients_by_instance: HashMap<String, u64> = HashMap::new();
+
 use crate::game::GameHandler;
 
 pub fn start_listen(game_ref: Arc<Mutex<GameHandler>>) {
     let event_hub = simple_websockets::launch(9151).expect("failed to listen on port 9151");
-    let mut clients: HashMap<u64, Responder> = HashMap::new();
 
     std::thread::spawn(move || {
-        websocket_loop(&event_hub, &mut clients, game_ref);
+        websocket_loop(&event_hub, game_ref);
     });
 }
 
-fn websocket_loop(
-    event_hub: &EventHub,
-    clients: &mut HashMap<u64, Responder>,
-    game_ref: Arc<Mutex<GameHandler>>,
-) {
+fn websocket_loop(event_hub: &EventHub, game_ref: Arc<Mutex<GameHandler>>) {
     let mut instance_state = InstanceState {
         instances: HashMap::new(),
         self_state_by_instance: HashMap::new(),
@@ -65,6 +63,10 @@ fn websocket_loop(
                         match parsed_message {
                             Ok(parsed_message) => match parsed_message.command {
                                 Command::Initiate => {
+                                    clients_by_instance.insert(
+                                        parsed_message.server_unique_identifier.clone().unwrap(),
+                                        client_id,
+                                    );
                                     handle_init(
                                         parsed_message.parameter.unwrap(),
                                         &mut instance_state.instances,
@@ -350,6 +352,41 @@ fn handle_sound_stop(message: ParamMessageType) {
     if let ParamMessageType::StopSoundParameter(stop_sound) = message {
         // Handle stop sound
     }
+}
+
+//Events RustyChat Outgoing to be handled by the plugin:
+// 1. SoundState (on mic and speaker toggle)
+// 2. TalkState (on start and on stop talking)
+// 3. RadioTrafficState (Sent by the plugin when radio traffic is received, breaks up or ends.)
+
+pub fn on_sound_state_toggle(
+    server_id: &String,
+    is_microphone_enabled: bool,
+    is_microphone_muted: bool,
+    is_sound_enabled: bool,
+    is_sound_muted: bool,
+) {
+    let sound_state_message = ParamMessageType::SoundStateParameter(SoundStateParameter {
+        is_microphone_enabled,
+        is_microphone_muted,
+        is_sound_enabled,
+        is_sound_muted,
+    });
+
+    let message = ProtocolMessage {
+        command: Command::SoundState,
+        server_unique_identifier: Some(server_id.to_owned()),
+        parameter: Some(sound_state_message),
+    };
+
+    let message = serde_json::to_string(&message).unwrap();
+
+    let client_id = clients_by_instance.get(server_id).unwrap();
+
+    clients
+        .get(&client_id)
+        .unwrap()
+        .send(Message::Text(message));
 }
 
 #[cfg(test)]
