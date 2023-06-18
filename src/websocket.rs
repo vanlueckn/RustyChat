@@ -24,17 +24,17 @@ lazy_static! {
     static ref CLIENTS: Mutex<HashMap<u64, Responder>> = Mutex::from(HashMap::new());
     static ref CLIENTS_BY_INSTANCE: Mutex<HashMap<String, u64>> = Mutex::from(HashMap::new());
 }
-use crate::game::GameHandler;
+use crate::game::{GameHandler, initiate_rusty_server};
 
-pub fn start_listen(game_ref: Arc<Mutex<GameHandler>>) {
+pub fn start_listen() {
     let event_hub = simple_websockets::launch(9151).expect("failed to listen on port 9151");
 
     std::thread::spawn(move || {
-        let _res = websocket_loop(&event_hub, game_ref);
+        let _res = websocket_loop(&event_hub);
     });
 }
 
-fn websocket_loop(event_hub: &EventHub, game_ref: Arc<Mutex<GameHandler>>) -> Result<()> {
+fn websocket_loop(event_hub: &EventHub) -> Result<()> {
     let mut instance_state = InstanceState {
         instances: HashMap::new(),
         self_state_by_instance: HashMap::new(),
@@ -43,7 +43,6 @@ fn websocket_loop(event_hub: &EventHub, game_ref: Arc<Mutex<GameHandler>>) -> Re
     loop {
         match event_hub.poll_event() {
             Event::Connect(client_id, responder) => {
-                game_ref.lock().unwrap().ws_connected();
                 println!("A client connected with id #{}", client_id);
                 handle_connect(&responder);
                 CLIENTS.lock().unwrap().insert(client_id, responder);
@@ -69,13 +68,8 @@ fn websocket_loop(event_hub: &EventHub, game_ref: Arc<Mutex<GameHandler>>) -> Re
                             std::result::Result::Ok(parsed_message) => match parsed_message.command
                             {
                                 Command::Initiate => {
-                                    CLIENTS_BY_INSTANCE.lock().unwrap().insert(
-                                        parsed_message.server_unique_identifier.clone().unwrap(),
-                                        client_id,
-                                    );
                                     handle_init(
-                                        parsed_message.parameter.unwrap(),
-                                        &mut instance_state.instances,
+                                        parsed_message.parameter.unwrap()
                                     );
                                 }
                                 Command::Ping => {
@@ -190,16 +184,9 @@ fn handle_connect(responder: &Responder) {
     responder.send(Message::Text(serde_json::to_string(&message).unwrap()));
 }
 
-fn handle_init(message: ParamMessageType, instance_state: &mut HashMap<String, InitiateParameter>) {
+fn handle_init(message: ParamMessageType) {
     if let ParamMessageType::InitiateParameter(initiate_parameter) = message {
-        if instance_state.contains_key(&initiate_parameter.server_unique_identifier) {
-            instance_state.remove(&initiate_parameter.server_unique_identifier);
-        }
-
-        instance_state.insert(
-            initiate_parameter.server_unique_identifier.to_owned(),
-            initiate_parameter,
-        );
+        initiate_rusty_server(initiate_parameter);
     }
 }
 
