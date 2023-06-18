@@ -1,10 +1,11 @@
 pub mod protocol;
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Ok, Result};
 use simple_websockets::{Event, EventHub, Message, Responder};
 use std::collections::HashMap;
 use std::error::Error;
 use std::sync::{Arc, Mutex};
+use ts3plugin::{ClientProperties, ServerId};
 
 use self::protocol::{
     Command, InitiateParameter, ParamMessageType, PlayerStateUpdateParameter, PluginStateParameter,
@@ -65,7 +66,8 @@ fn websocket_loop(event_hub: &EventHub, game_ref: Arc<Mutex<GameHandler>>) {
                             serde_json::from_str(&text.to_owned());
 
                         match parsed_message {
-                            Ok(parsed_message) => match parsed_message.command {
+                            std::result::Result::Ok(parsed_message) => match parsed_message.command
+                            {
                                 Command::Initiate => {
                                     clients_by_instance.lock().unwrap().insert(
                                         parsed_message.server_unique_identifier.clone().unwrap(),
@@ -408,7 +410,7 @@ pub fn on_sound_state_toggle(
     Ok(())
 }
 
-pub fn on_talk_state_toggle(server_id: &String, is_talking: bool, name: &str) {
+pub fn on_talk_state_toggle(server_id: &String, is_talking: bool, name: &str) -> Result<()> {
     let clients_by_instance_locked = clients_by_instance.lock().unwrap();
     let talk_state_message = ParamMessageType::TalkStateParameter(TalkStateParameter {
         is_talking,
@@ -421,16 +423,28 @@ pub fn on_talk_state_toggle(server_id: &String, is_talking: bool, name: &str) {
         parameter: Some(talk_state_message),
     };
 
-    let message = serde_json::to_string(&message).unwrap();
+    let message = serde_json::to_string(&message)?;
 
-    let client_id = clients_by_instance_locked.get(server_id).unwrap();
+    let client_id = clients_by_instance_locked
+        .get(server_id)
+        .ok_or(anyhow!("err"))?;
 
     clients
         .lock()
         .unwrap()
         .get(&client_id)
-        .unwrap()
+        .ok_or(anyhow!("not connected"))?
         .send(Message::Text(message));
+
+    Ok(())
+}
+
+pub fn on_self_variable_update(
+    server_id: ServerId,
+    flag: ClientProperties,
+    old_value: String,
+    new_value: String,
+) {
 }
 
 #[cfg(test)]

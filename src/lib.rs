@@ -2,7 +2,6 @@ mod audiofx;
 mod game;
 mod gui;
 mod websocket;
-
 use std::sync::{Arc, Mutex};
 
 use audiofx::init_high_pass;
@@ -108,7 +107,9 @@ impl Plugin for RustyChatTsPlugin {
 
     fn new(api: &mut TsApi) -> Result<Box<Self>, InitError> {
         api.log_or_print("Inited", "RustyChatTsPlugin", LogLevel::Info);
-        win32console::console::WinConsole::alloc_console().unwrap();
+
+        if win32console::console::WinConsole::alloc_console().is_err() {}
+
         println!("attached console");
 
         let gameInst = GameHandler {
@@ -161,8 +162,43 @@ impl Plugin for RustyChatTsPlugin {
         true
     }
 
+    fn talking_changed(
+        &mut self,
+        api: &mut TsApi,
+        server_id: ServerId,
+        connection_id: ConnectionId,
+        talking: TalkStatus,
+        whispering: bool,
+    ) {
+        let is_talking = match talking {
+            TalkStatus::NotTalking => false,
+            _ => true,
+        };
+
+        let server = api.get_server(server_id).unwrap();
+        let client = server.get_connection(connection_id).unwrap();
+        println!("Is Talking: {}, {}", client.get_id().0, is_talking);
+        let _ = websocket::on_talk_state_toggle(
+            server.get_uid().unwrap(),
+            is_talking,
+            client.get_name().unwrap(),
+        );
+    }
+
+    fn self_variable_update(
+        &mut self,
+        api: &mut TsApi,
+        server_id: ServerId,
+        flag: ClientProperties,
+        old_value: String,
+        new_value: String,
+    ) {
+       websocket::on_self_variable_update(server_id, flag, old_value, new_value);
+    }
+
     fn shutdown(&mut self, api: &mut TsApi) {
         api.log_or_print("Shutdown", "MyTsPlugin", LogLevel::Info);
+        //TODO: shutdown websocket server, ...
     }
 }
 
