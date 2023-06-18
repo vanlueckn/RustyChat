@@ -4,7 +4,7 @@ mod gui;
 mod websocket;
 use std::sync::{Arc, Mutex};
 
-use audiofx::init_high_pass;
+
 use game::GameHandler;
 use iir_filters::filter::DirectForm2Transposed;
 use ts3plugin::*;
@@ -49,16 +49,16 @@ impl Plugin for RustyChatTsPlugin {
         ConfigureOffer::QtThread
     }
 
-    fn configure(&mut self, api: &mut TsApi) {
+    fn configure(&mut self, _api: &mut TsApi) {
         gui::show();
     }
 
     fn connect_status_change(
         &mut self,
-        api: &mut TsApi,
-        server_id: ServerId,
+        _api: &mut TsApi,
+        _server_id: ServerId,
         status: ConnectStatus,
-        error: Error,
+        _error: Error,
     ) {
         match status {
             ConnectStatus::Connected => {
@@ -70,10 +70,10 @@ impl Plugin for RustyChatTsPlugin {
 
     fn connection_move(
         &mut self,
-        api: &mut TsApi,
+        _api: &mut TsApi,
         server_id: ServerId,
         connection_id: ConnectionId,
-        old_channel_id: ChannelId,
+        _old_channel_id: ChannelId,
         new_channel_id: ChannelId,
         visibility: Visibility,
     ) {
@@ -88,13 +88,13 @@ impl Plugin for RustyChatTsPlugin {
 
     fn connection_moved(
         &mut self,
-        api: &mut TsApi,
+        _api: &mut TsApi,
         server_id: ServerId,
         connection_id: ConnectionId,
-        old_channel_id: ChannelId,
+        _old_channel_id: ChannelId,
         new_channel_id: ChannelId,
         visibility: Visibility,
-        invoker: Invoker,
+        _invoker: Invoker,
     ) {
         println!("moved");
         self.rusty_handler.lock().unwrap().ts_on_channel_switched(
@@ -139,24 +139,24 @@ impl Plugin for RustyChatTsPlugin {
 
     fn post_process_voice_data(
         &mut self,
-        api: &mut TsApi,
-        server_id: ServerId,
-        connection_id: ConnectionId,
+        _api: &mut TsApi,
+        _server_id: ServerId,
+        _connection_id: ConnectionId,
         samples: &mut [i16],
-        channels: i32,
-        channel_speaker_array: &[Speaker],
-        channel_fill_mask: &mut u32,
+        _channels: i32,
+        _channel_speaker_array: &[Speaker],
+        _channel_fill_mask: &mut u32,
     ) {
         audiofx::process_radio(samples, &mut self.vol_follow);
     }
 
     fn captured_voice_data(
         &mut self,
-        api: &mut TsApi,
-        server_id: ServerId,
+        _api: &mut TsApi,
+        _server_id: ServerId,
         samples: &mut [i16],
-        channels: i32,
-        send: &mut bool,
+        _channels: i32,
+        _send: &mut bool,
     ) -> bool {
         audiofx::process_radio(samples, &mut self.vol_follow);
         true
@@ -168,7 +168,7 @@ impl Plugin for RustyChatTsPlugin {
         server_id: ServerId,
         connection_id: ConnectionId,
         talking: TalkStatus,
-        whispering: bool,
+        _whispering: bool,
     ) {
         let is_talking = match talking {
             TalkStatus::NotTalking => false,
@@ -187,7 +187,7 @@ impl Plugin for RustyChatTsPlugin {
 
     fn self_variable_update(
         &mut self,
-        api: &mut TsApi,
+        _api: &mut TsApi,
         server_id: ServerId,
         flag: ClientProperties,
         old_value: String,

@@ -3,7 +3,7 @@ pub mod protocol;
 use anyhow::{anyhow, Ok, Result};
 use simple_websockets::{Event, EventHub, Message, Responder};
 use std::collections::HashMap;
-use std::error::Error;
+
 use std::sync::{Arc, Mutex};
 use ts3plugin::{ClientProperties, ServerId};
 
@@ -21,8 +21,8 @@ struct InstanceState {
 }
 
 lazy_static! {
-    static ref clients: Mutex<HashMap<u64, Responder>> = Mutex::from(HashMap::new());
-    static ref clients_by_instance: Mutex<HashMap<String, u64>> = Mutex::from(HashMap::new());
+    static ref CLIENTS: Mutex<HashMap<u64, Responder>> = Mutex::from(HashMap::new());
+    static ref CLIENTS_BY_INSTANCE: Mutex<HashMap<String, u64>> = Mutex::from(HashMap::new());
 }
 use crate::game::GameHandler;
 
@@ -46,15 +46,15 @@ fn websocket_loop(event_hub: &EventHub, game_ref: Arc<Mutex<GameHandler>>) {
                 game_ref.lock().unwrap().ws_connected();
                 println!("A client connected with id #{}", client_id);
                 handle_connect(&responder);
-                clients.lock().unwrap().insert(client_id, responder);
+                CLIENTS.lock().unwrap().insert(client_id, responder);
             }
             Event::Disconnect(client_id) => {
                 println!("Client #{} disconnected.", client_id);
                 // remove the disconnected client from the clients map:
-                clients.lock().unwrap().remove(&client_id);
+                CLIENTS.lock().unwrap().remove(&client_id);
             }
             Event::Message(client_id, message) => {
-                let clients_locked = clients.lock().unwrap();
+                let clients_locked = CLIENTS.lock().unwrap();
                 println!(
                     "Received a message from client #{}: {:?}",
                     client_id, message
@@ -69,7 +69,7 @@ fn websocket_loop(event_hub: &EventHub, game_ref: Arc<Mutex<GameHandler>>) {
                             std::result::Result::Ok(parsed_message) => match parsed_message.command
                             {
                                 Command::Initiate => {
-                                    clients_by_instance.lock().unwrap().insert(
+                                    CLIENTS_BY_INSTANCE.lock().unwrap().insert(
                                         parsed_message.server_unique_identifier.clone().unwrap(),
                                         client_id,
                                     );
@@ -81,7 +81,7 @@ fn websocket_loop(event_hub: &EventHub, game_ref: Arc<Mutex<GameHandler>>) {
                                 Command::Ping => {
                                     handle_ping(
                                         parsed_message,
-                                        clients.lock().unwrap().get(&client_id).unwrap(),
+                                        CLIENTS.lock().unwrap().get(&client_id).unwrap(),
                                     );
                                 }
                                 Command::SelfStateUpdate => {
@@ -274,7 +274,7 @@ fn handle_remove_player(
     instance_state: &mut InstanceState,
 ) {
     if let ParamMessageType::RemovePlayerParameter(remove_player_param) = message {
-        let mut players_cloned = instance_state
+        let players_cloned = instance_state
             .player_states_by_instance
             .get(server_id)
             .unwrap()
@@ -290,75 +290,75 @@ fn handle_remove_player(
 }
 
 fn handle_phone_communication_update(message: ParamMessageType) {
-    if let ParamMessageType::PhoneCommunicationUpdateParameter(phone_communication_update) = message
+    if let ParamMessageType::PhoneCommunicationUpdateParameter(_phone_communication_update) = message
     {
         // Handle phone communication update
     }
 }
 
 fn handle_phone_call_end(message: ParamMessageType) {
-    if let ParamMessageType::StopPhoneCommunicationParameter(phone_call_end) = message {
+    if let ParamMessageType::StopPhoneCommunicationParameter(_phone_call_end) = message {
         // Handle phone communication end
     }
 }
 
 fn handle_radio_communication_update(message: ParamMessageType) {
-    if let ParamMessageType::RadioCommunicationUpdateParameter(radio_update_param) = message {
+    if let ParamMessageType::RadioCommunicationUpdateParameter(_radio_update_param) = message {
         // Handle phone communication update
     }
 }
 
 fn handle_radio_stop(message: ParamMessageType) {
-    if let ParamMessageType::StopRadioCommunicationParameter(radio_call_end) = message {
+    if let ParamMessageType::StopRadioCommunicationParameter(_radio_call_end) = message {
         // Handle phone communication end
     }
 }
 
 fn handle_radio_tower_update(message: ParamMessageType) {
-    if let ParamMessageType::RadioTowerUpdateParameter(radio_tower_update) = message {
+    if let ParamMessageType::RadioTowerUpdateParameter(_radio_tower_update) = message {
         // Handle radio tower update
     }
 }
 
 fn handle_radio_channel_add(message: ParamMessageType) {
-    if let ParamMessageType::AddRadioChannelMemberParameter(radio_cannel_member_add) = message {
+    if let ParamMessageType::AddRadioChannelMemberParameter(_radio_cannel_member_add) = message {
         // Handle add radio channel member
     }
 }
 
 fn handle_radio_channel_update(message: ParamMessageType) {
-    if let ParamMessageType::UpdateRadioChannelMembersParameter(radio_channel_update) = message {
+    if let ParamMessageType::UpdateRadioChannelMembersParameter(_radio_channel_update) = message {
         // Handle add radio channel update
     }
 }
 
 fn handle_radio_channel_remove(message: ParamMessageType) {
-    if let ParamMessageType::RemoveRadioChannelMemberParameter(radio_cannel_member_remove) = message
+    if let ParamMessageType::RemoveRadioChannelMemberParameter(_radio_cannel_member_remove) = message
     {
         // Handle remove radio channel member
     }
 }
 
 fn handle_megaphone_update(message: ParamMessageType) {
-    if let ParamMessageType::MegaphoneCommunicationUpdateParameter(megaphone_update) = message {
+    if let ParamMessageType::MegaphoneCommunicationUpdateParameter(_megaphone_update) = message {
         // Handle megaphone update
     }
 }
 
 fn handle_megaphone_stop(message: ParamMessageType) {
-    if let ParamMessageType::MegaphoneCommunicationUpdateParameter(megaphone_stop) = message {
+    if let ParamMessageType::MegaphoneCommunicationUpdateParameter(_megaphone_stop) = message {
         // Handle megaphone stop
     }
 }
 
 fn handle_sound_play(message: ParamMessageType) {
-    if let ParamMessageType::PlaySoundParameter(play_sound) = message {
+    if let ParamMessageType::PlaySoundParameter(_play_sound) = message {
         // Handle play sound
     }
 }
 
 fn handle_sound_stop(message: ParamMessageType) {
-    if let ParamMessageType::StopSoundParameter(stop_sound) = message {
+    if let ParamMessageType::StopSoundParameter(_stop_sound) = message {
         // Handle stop sound
     }
 }
@@ -375,7 +375,7 @@ pub fn on_sound_state_toggle(
     is_sound_enabled: bool,
     is_sound_muted: bool,
 ) -> Result<()> {
-    let clients_by_instance_locked = clients_by_instance.lock().unwrap();
+    let clients_by_instance_locked = CLIENTS_BY_INSTANCE.lock().unwrap();
 
     let sound_state_message = ParamMessageType::SoundStateParameter(SoundStateParameter {
         is_microphone_enabled,
@@ -397,7 +397,7 @@ pub fn on_sound_state_toggle(
         server_id
     ))?;
 
-    clients
+    CLIENTS
         .lock()
         .unwrap()
         .get(&client_id)
@@ -411,7 +411,7 @@ pub fn on_sound_state_toggle(
 }
 
 pub fn on_talk_state_toggle(server_id: &String, is_talking: bool, name: &str) -> Result<()> {
-    let clients_by_instance_locked = clients_by_instance.lock().unwrap();
+    let clients_by_instance_locked = CLIENTS_BY_INSTANCE.lock().unwrap();
     let talk_state_message = ParamMessageType::TalkStateParameter(TalkStateParameter {
         is_talking,
         name: name.to_owned(),
@@ -429,7 +429,7 @@ pub fn on_talk_state_toggle(server_id: &String, is_talking: bool, name: &str) ->
         .get(server_id)
         .ok_or(anyhow!("err"))?;
 
-    clients
+    CLIENTS
         .lock()
         .unwrap()
         .get(&client_id)
@@ -440,11 +440,14 @@ pub fn on_talk_state_toggle(server_id: &String, is_talking: bool, name: &str) ->
 }
 
 pub fn on_self_variable_update(
-    server_id: ServerId,
+    _server_id: ServerId,
     flag: ClientProperties,
-    old_value: String,
-    new_value: String,
+    _old_value: String,
+    _new_value: String,
 ) {
+    match flag {
+        _ => {}
+    }
 }
 
 #[cfg(test)]
@@ -457,7 +460,7 @@ mod tests {
         //start_listen();
         std::thread::sleep(std::time::Duration::from_millis(250));
 
-        let (mut socket, response) =
+        let (mut socket, _response) =
             connect(Url::parse("ws://localhost:9151").unwrap()).expect("Can't connect");
 
         socket

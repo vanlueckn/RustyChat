@@ -3,9 +3,9 @@ use iir_filters::filter::Filter;
 use iir_filters::filter_design::butter;
 use iir_filters::filter_design::FilterType;
 use iir_filters::sos::zpk2sos;
-use libdsp_sys::root::DSP::{BiQuadFilter, DigitalDelay};
+use libdsp_sys::root::DSP::{DigitalDelay};
 use rand::prelude::*;
-use std::cmp;
+
 
 const DELAY_AMOUNT: usize = 50;
 const DELAY_FEEDBACK: f32 = 0.7;

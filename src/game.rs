@@ -51,7 +51,7 @@ impl GameHandler {
 
         self.own_client_id = Some(own_client.0);
 
-        let server_id = server.get_id().0;
+        let _server_id = server.get_id().0;
 
         self.ts_rename_client(&ts_api, params.name);
         self.ts_join_channel(&ts_api, params.channel_id);
