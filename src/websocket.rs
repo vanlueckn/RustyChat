@@ -102,10 +102,10 @@ fn websocket_loop(
                                     );
                                 }
                                 Command::PlaySound => {
-                                    //Not implemented
+                                    handle_sound_play(parsed_message.parameter.unwrap());
                                 }
                                 Command::StopSound => {
-                                    //Not implemented
+                                    handle_sound_stop(parsed_message.parameter.unwrap());
                                 }
                                 Command::PhoneCommunicationUpdate => {
                                     handle_phone_communication_update(
@@ -337,6 +337,18 @@ fn handle_megaphone_update(message: ParamMessageType) {
 fn handle_megaphone_stop(message: ParamMessageType) {
     if let ParamMessageType::MegaphoneCommunicationUpdateParameter(megaphone_stop) = message {
         // Handle megaphone stop
+    }
+}
+
+fn handle_sound_play(message: ParamMessageType) {
+    if let ParamMessageType::PlaySoundParameter(play_sound) = message {
+        // Handle play sound
+    }
+}
+
+fn handle_sound_stop(message: ParamMessageType) {
+    if let ParamMessageType::StopSoundParameter(stop_sound) = message {
+        // Handle stop sound
     }
 }
 
