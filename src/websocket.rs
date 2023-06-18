@@ -19,9 +19,10 @@ struct InstanceState {
     player_states_by_instance: HashMap<String, Vec<PlayerStateUpdateParameter>>,
 }
 
-static clients: HashMap<u64, Responder> = HashMap::new();
-static clients_by_instance: HashMap<String, u64> = HashMap::new();
-
+lazy_static! {
+    static ref clients: Mutex<HashMap<u64, Responder>> = Mutex::from(HashMap::new());
+    static ref clients_by_instance: Mutex<HashMap<String, u64>> = Mutex::from(HashMap::new());
+}
 use crate::game::GameHandler;
 
 pub fn start_listen(game_ref: Arc<Mutex<GameHandler>>) {
@@ -44,14 +45,15 @@ fn websocket_loop(event_hub: &EventHub, game_ref: Arc<Mutex<GameHandler>>) {
                 game_ref.lock().unwrap().ws_connected();
                 println!("A client connected with id #{}", client_id);
                 handle_connect(&responder);
-                clients.insert(client_id, responder);
+                clients.lock().unwrap().insert(client_id, responder);
             }
             Event::Disconnect(client_id) => {
                 println!("Client #{} disconnected.", client_id);
                 // remove the disconnected client from the clients map:
-                clients.remove(&client_id);
+                clients.lock().unwrap().remove(&client_id);
             }
             Event::Message(client_id, message) => {
+                let clients_locked = clients.lock().unwrap();
                 println!(
                     "Received a message from client #{}: {:?}",
                     client_id, message
@@ -65,7 +67,7 @@ fn websocket_loop(event_hub: &EventHub, game_ref: Arc<Mutex<GameHandler>>) {
                         match parsed_message {
                             Ok(parsed_message) => match parsed_message.command {
                                 Command::Initiate => {
-                                    clients_by_instance.insert(
+                                    clients_by_instance.lock().unwrap().insert(
                                         parsed_message.server_unique_identifier.clone().unwrap(),
                                         client_id,
                                     );
@@ -75,7 +77,10 @@ fn websocket_loop(event_hub: &EventHub, game_ref: Arc<Mutex<GameHandler>>) {
                                     );
                                 }
                                 Command::Ping => {
-                                    handle_ping(parsed_message, clients.get(&client_id).unwrap());
+                                    handle_ping(
+                                        parsed_message,
+                                        clients.lock().unwrap().get(&client_id).unwrap(),
+                                    );
                                 }
                                 Command::SelfStateUpdate => {
                                     handle_self_state_update(
@@ -158,7 +163,7 @@ fn websocket_loop(event_hub: &EventHub, game_ref: Arc<Mutex<GameHandler>>) {
                 }
 
                 // retrieve this client's `Responder`:
-                let responder = clients.get(&client_id).unwrap();
+                let responder = clients_locked.get(&client_id).unwrap();
                 // echo the message back:
                 responder.send(Message::Text("Hello World".to_owned()));
             }
@@ -368,6 +373,8 @@ pub fn on_sound_state_toggle(
     is_sound_enabled: bool,
     is_sound_muted: bool,
 ) -> Result<()> {
+    let clients_by_instance_locked = clients_by_instance.lock().unwrap();
+
     let sound_state_message = ParamMessageType::SoundStateParameter(SoundStateParameter {
         is_microphone_enabled,
         is_microphone_muted,
@@ -383,12 +390,14 @@ pub fn on_sound_state_toggle(
 
     let message = serde_json::to_string(&message)?;
 
-    let client_id = clients_by_instance.get(server_id).ok_or(anyhow!(
+    let client_id = clients_by_instance_locked.get(server_id).ok_or(anyhow!(
         "ws client for server {} not found in list",
         server_id
     ))?;
 
     clients
+        .lock()
+        .unwrap()
         .get(&client_id)
         .ok_or(anyhow!(
             "responder for client {} not found in list",
@@ -400,6 +409,7 @@ pub fn on_sound_state_toggle(
 }
 
 pub fn on_talk_state_toggle(server_id: &String, is_talking: bool, name: &str) {
+    let clients_by_instance_locked = clients_by_instance.lock().unwrap();
     let talk_state_message = ParamMessageType::TalkStateParameter(TalkStateParameter {
         is_talking,
         name: name.to_owned(),
@@ -413,9 +423,11 @@ pub fn on_talk_state_toggle(server_id: &String, is_talking: bool, name: &str) {
 
     let message = serde_json::to_string(&message).unwrap();
 
-    let client_id = clients_by_instance.get(server_id).unwrap();
+    let client_id = clients_by_instance_locked.get(server_id).unwrap();
 
     clients
+        .lock()
+        .unwrap()
         .get(&client_id)
         .unwrap()
         .send(Message::Text(message));

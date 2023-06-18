@@ -10,6 +10,9 @@ use game::GameHandler;
 use iir_filters::filter::DirectForm2Transposed;
 use ts3plugin::*;
 
+#[macro_use]
+extern crate lazy_static;
+
 struct RustyChatTsPlugin {
     low_pass: DirectForm2Transposed,
     band_pass: DirectForm2Transposed,
