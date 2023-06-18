@@ -25,6 +25,10 @@ pub struct InitiateParameter {
     pub channel_password: String,
     pub sound_pack: String,
     pub swiss_channel_ids: Vec<u64>,
+    #[serde(default = "default_talk_state")]
+    send_talk_states: bool,
+    #[serde(default = "default_radio_traffic_state")]
+    send_radio_traffic_states: bool,
     #[serde(default = "default_ultra_short_range_distance")]
     pub ultra_short_range_distance: f32,
     #[serde(default = "default_short_range_distance")]
@@ -336,7 +340,7 @@ pub enum ParamMessageType {
     StopMegaphoneCommunicationParameter(StopMegaphoneCommunicationParameter),
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize_repr, Deserialize_repr)]
 #[repr(u32)]
 pub enum Command {
     // Plugin

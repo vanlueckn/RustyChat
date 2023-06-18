@@ -30,11 +30,11 @@ pub fn start_listen(game_ref: Arc<Mutex<GameHandler>>) {
     let event_hub = simple_websockets::launch(9151).expect("failed to listen on port 9151");
 
     std::thread::spawn(move || {
-        websocket_loop(&event_hub, game_ref);
+        let _res = websocket_loop(&event_hub, game_ref);
     });
 }
 
-fn websocket_loop(event_hub: &EventHub, game_ref: Arc<Mutex<GameHandler>>) {
+fn websocket_loop(event_hub: &EventHub, game_ref: Arc<Mutex<GameHandler>>) -> Result<()> {
     let mut instance_state = InstanceState {
         instances: HashMap::new(),
         self_state_by_instance: HashMap::new(),
@@ -165,7 +165,9 @@ fn websocket_loop(event_hub: &EventHub, game_ref: Arc<Mutex<GameHandler>>) {
                 }
 
                 // retrieve this client's `Responder`:
-                let responder = clients_locked.get(&client_id).unwrap();
+                let responder = clients_locked
+                    .get(&client_id)
+                    .ok_or(anyhow!("Client responder not found"))?;
                 // echo the message back:
                 responder.send(Message::Text("Hello World".to_owned()));
             }
