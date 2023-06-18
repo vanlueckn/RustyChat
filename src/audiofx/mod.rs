@@ -1,3 +1,4 @@
+use anyhow::Result;
 use iir_filters::filter::DirectForm2Transposed;
 use iir_filters::filter::Filter;
 use iir_filters::filter_design::butter;
@@ -26,17 +27,16 @@ pub fn process_delay(input: &mut [i16], delay: &mut DigitalDelay) {
 const CUTOFF_FREQUENCY: f64 = 0.5;
 const SAMPLE_FREQUENCY: f64 = 8000.0;
 
-pub fn init_lowpass() -> DirectForm2Transposed {
+pub fn init_lowpass() -> Result<DirectForm2Transposed> {
     let order = 5;
     let zpk = butter(
         order,
         FilterType::LowPass(CUTOFF_FREQUENCY),
         SAMPLE_FREQUENCY,
-    )
-    .unwrap();
-    let sos = zpk2sos(&zpk, None).unwrap();
+    )?;
+    let sos = zpk2sos(&zpk, None)?;
 
-    DirectForm2Transposed::new(&sos)
+    Ok(DirectForm2Transposed::new(&sos))
 }
 
 pub fn process_lowpass(input: &mut [i16], dft2: &mut DirectForm2Transposed) {
@@ -48,32 +48,30 @@ pub fn process_lowpass(input: &mut [i16], dft2: &mut DirectForm2Transposed) {
 const BAND_PASS_LOW: f64 = 50.0;
 const BAND_PASS_HIGH: f64 = 2600.0;
 
-pub fn init_band_pass() -> DirectForm2Transposed {
+pub fn init_band_pass() -> Result<DirectForm2Transposed> {
     let order = 5;
     let zpk = butter(
         order,
         FilterType::BandPass(BAND_PASS_LOW, BAND_PASS_HIGH),
         SAMPLE_FREQUENCY,
-    )
-    .unwrap();
-    let sos = zpk2sos(&zpk, None).unwrap();
+    )?;
+    let sos = zpk2sos(&zpk, None)?;
 
-    DirectForm2Transposed::new(&sos)
+    Ok(DirectForm2Transposed::new(&sos))
 }
 
 const HIGH_PASS_FREQ: f64 = 2000.0;
 
-pub fn init_high_pass() -> DirectForm2Transposed {
+pub fn init_high_pass() -> Result<DirectForm2Transposed> {
     let order = 5;
     let zpk = butter(
         order,
         FilterType::HighPass(HIGH_PASS_FREQ),
         SAMPLE_FREQUENCY,
-    )
-    .unwrap();
-    let sos = zpk2sos(&zpk, None).unwrap();
+    )?;
+    let sos = zpk2sos(&zpk, None)?;
 
-    DirectForm2Transposed::new(&sos)
+    Ok(DirectForm2Transposed::new(&sos))
 }
 
 const FUDGE: f32 = 10.0;
@@ -146,7 +144,7 @@ mod tests {
 
     #[test]
     fn test_lowpass_filter() {
-        let mut lowpass = init_lowpass();
+        let mut lowpass = init_lowpass().unwrap();
 
         let mut input = [2000_i16; 100];
 

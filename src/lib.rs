@@ -4,6 +4,7 @@ mod gui;
 mod websocket;
 use std::sync::{Arc, Mutex};
 
+use anyhow::Result;
 use game::GameHandler;
 use iir_filters::filter::DirectForm2Transposed;
 use ts3plugin::*;
@@ -49,7 +50,7 @@ impl Plugin for RustyChatTsPlugin {
     }
 
     fn configure(&mut self, _api: &mut TsApi) {
-        gui::show();
+        let _res = gui::show();
     }
 
     fn connect_status_change(
@@ -111,7 +112,7 @@ impl Plugin for RustyChatTsPlugin {
 
         println!("attached console");
 
-        let gameInst = GameHandler {
+        let game_inst = GameHandler {
             server_id: None,
             in_game: false,
             original_channel: None,
@@ -119,13 +120,13 @@ impl Plugin for RustyChatTsPlugin {
             own_client_id: None,
         };
 
-        let game_ref = Arc::new(Mutex::new(gameInst));
+        let game_ref = Arc::new(Mutex::new(game_inst));
 
         websocket::start_listen(game_ref.clone());
 
-        let low_pass = audiofx::init_lowpass();
-        let band_pass = audiofx::init_band_pass();
-        let high_pass = audiofx::init_high_pass();
+        let low_pass = audiofx::init_lowpass().unwrap();
+        let band_pass = audiofx::init_band_pass().unwrap();
+        let high_pass = audiofx::init_high_pass().unwrap();
 
         Ok(Box::new(Self {
             low_pass,
