@@ -9,7 +9,7 @@ RustyChat is an open-source Rust library that serves as a drop-in replacement fo
 
 ## Features
 
-- Easy integration: RustyChat offers a simple and straightforward API for integrating voice communication capabilities into your Rust projects.
+- Easy integration: RustyChat offers a simple and straightforward API for integrating 3D voice communication capabilities into your projects.
 - Compatibility: Designed as a drop-in replacement for SaltyChat, RustyChat maintains compatibility with existing multiplayer mods for GTA V.
 - Open Source: RustyChat is licensed under the MIT license (free and open source software).
 - Written in Rust: Rust is a very performant low level language but still memory safe.
