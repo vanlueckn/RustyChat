@@ -1,22 +1,21 @@
 mod audiofx;
+mod game;
 mod gui;
 mod websocket;
-mod game;
 
 use std::sync::{Arc, Mutex};
 
 use audiofx::init_high_pass;
-use iir_filters::filter::DirectForm2Transposed;
 use game::GameHandler;
+use iir_filters::filter::DirectForm2Transposed;
 use ts3plugin::*;
 
 struct RustyChatTsPlugin {
     low_pass: DirectForm2Transposed,
     band_pass: DirectForm2Transposed,
     high_pass: DirectForm2Transposed,
-    rusty_handler: Arc<Mutex<GameHandler>>
+    rusty_handler: Arc<Mutex<GameHandler>>,
 }
-
 
 impl Plugin for RustyChatTsPlugin {
     fn name() -> String {
@@ -51,19 +50,74 @@ impl Plugin for RustyChatTsPlugin {
         gui::show();
     }
 
+    fn connect_status_change(
+        &mut self,
+        api: &mut TsApi,
+        server_id: ServerId,
+        status: ConnectStatus,
+        error: Error,
+    ) {
+        match status {
+            ConnectStatus::Connected => {
+                //self.rusty_handler.lock().unwrap().server_id = Some(server_id.0);
+            }
+            _ => {}
+        }
+    }
+
+    fn connection_move(
+        &mut self,
+        api: &mut TsApi,
+        server_id: ServerId,
+        connection_id: ConnectionId,
+        old_channel_id: ChannelId,
+        new_channel_id: ChannelId,
+        visibility: Visibility,
+    ) {
+        println!("move");
+        self.rusty_handler.lock().unwrap().ts_on_channel_switched(
+            server_id,
+            connection_id,
+            new_channel_id,
+            visibility,
+        );
+    }
+
+    fn connection_moved(
+        &mut self,
+        api: &mut TsApi,
+        server_id: ServerId,
+        connection_id: ConnectionId,
+        old_channel_id: ChannelId,
+        new_channel_id: ChannelId,
+        visibility: Visibility,
+        invoker: Invoker,
+    ) {
+        println!("moved");
+        self.rusty_handler.lock().unwrap().ts_on_channel_switched(
+            server_id,
+            connection_id,
+            new_channel_id,
+            visibility,
+        );
+    }
+
     fn new(api: &mut TsApi) -> Result<Box<Self>, InitError> {
         api.log_or_print("Inited", "RustyChatTsPlugin", LogLevel::Info);
         win32console::console::WinConsole::alloc_console().unwrap();
         println!("attached console");
 
         let gameInst = GameHandler {
-            server_id: None
+            server_id: None,
+            in_game: false,
+            original_channel: None,
+            game_channel: None,
+            own_client_id: None,
         };
 
         let game_ref = Arc::new(Mutex::new(gameInst));
 
         websocket::start_listen(game_ref.clone());
-        
 
         let low_pass = audiofx::init_lowpass();
         let band_pass = audiofx::init_band_pass();
@@ -73,13 +127,8 @@ impl Plugin for RustyChatTsPlugin {
             low_pass,
             band_pass,
             high_pass,
-            rusty_handler: game_ref.clone()
+            rusty_handler: game_ref.clone(),
         }))
-
-
-
-
-
     }
 
     fn post_process_voice_data(
@@ -95,9 +144,19 @@ impl Plugin for RustyChatTsPlugin {
         audiofx::process_radio(samples, &mut self.band_pass, &mut self.high_pass);
     }
 
-    fn captured_voice_data(&mut self, api: &mut TsApi, server_id: ServerId,
-            samples: &mut [i16], channels: i32, send: &mut bool) -> bool {
-        audiofx::process_radio(samples, &mut audiofx::init_band_pass(), &mut init_high_pass());
+    fn captured_voice_data(
+        &mut self,
+        api: &mut TsApi,
+        server_id: ServerId,
+        samples: &mut [i16],
+        channels: i32,
+        send: &mut bool,
+    ) -> bool {
+        audiofx::process_radio(
+            samples,
+            &mut audiofx::init_band_pass(),
+            &mut init_high_pass(),
+        );
         true
     }
 

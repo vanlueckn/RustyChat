@@ -5,6 +5,8 @@ use std::{collections::HashMap, sync::{Arc, Mutex}};
 
 use crate::game::GameHandler;
 
+use self::protocol::{ProtocolMessage, InitiateParameter, ParamMessageType};
+
 pub fn start_listen(game_ref: Arc<Mutex<GameHandler>>) {
     let event_hub = simple_websockets::launch(9151).expect("failed to listen on port 9151");
     let mut clients: HashMap<u64, Responder> = HashMap::new();
@@ -18,6 +20,7 @@ fn websocket_loop(event_hub: &EventHub, clients: &mut HashMap<u64, Responder>, g
     loop {
         match event_hub.poll_event() {
             Event::Connect(client_id, responder) => {
+                game_ref.lock().unwrap().ws_connected();
                 println!("A client connected with id #{}", client_id);
                 // add their Responder to our `clients` map:
                 clients.insert(client_id, responder);
@@ -39,7 +42,9 @@ fn websocket_loop(event_hub: &EventHub, clients: &mut HashMap<u64, Responder>, g
                             serde_json::from_str(&text.to_owned());
 
                         match parsed_message {
-                            Ok(parsed_message) => {}
+                            Ok(parsed_message) => {
+                                handle_ws_message(parsed_message, game_ref.clone())
+                            }
                             Err(err) => {
                                 println!("Error parsing message: {:?}", err);
                             }
@@ -58,6 +63,17 @@ fn websocket_loop(event_hub: &EventHub, clients: &mut HashMap<u64, Responder>, g
         }
     }
 }
+
+
+fn handle_ws_message(message: ProtocolMessage, game: Arc<Mutex<GameHandler>>) {
+    match message.parameter.unwrap() {
+        ParamMessageType::InitiateParameter(v) => {
+            game.lock().unwrap().initiate(v);
+        }
+        _ => {}
+    }
+}
+
 
 #[cfg(test)]
 mod tests {

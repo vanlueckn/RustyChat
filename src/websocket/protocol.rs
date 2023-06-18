@@ -6,7 +6,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 pub struct ProtocolMessage {
     command: u32,
     server_unique_identifier: Option<String>,
-    parameter: Option<ParamMessageType>,
+    pub parameter: Option<ParamMessageType>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -18,11 +18,11 @@ struct PluginStateParameter {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct InitiateParameter {
-    server_unique_identifier: String,
-    name: String,
-    channel_id: u64,
-    channel_password: String,
+pub struct InitiateParameter {
+    pub server_unique_identifier: String,
+    pub name: String,
+    pub channel_id: u64,
+    pub channel_password: String,
     sound_pack: String,
     swiss_channel_ids: Vec<u64>,
     #[serde(default = "default_talk_state")]
@@ -55,7 +55,7 @@ fn default_short_range_distance() -> f32 {
 
 fn default_long_range_distance() -> f32 {
     8000.0
-}
+} 
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
@@ -315,7 +315,7 @@ struct Vector3 {
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 #[serde(untagged)]
-enum ParamMessageType {
+pub enum ParamMessageType {
     PluginStateParameter(PluginStateParameter),
     InitiateParameter(InitiateParameter),
     InstanceStateParameter(InstanceStateParameter),
