@@ -4,7 +4,6 @@ mod gui;
 mod websocket;
 use std::sync::{Arc, Mutex};
 
-
 use game::GameHandler;
 use iir_filters::filter::DirectForm2Transposed;
 use ts3plugin::*;
@@ -193,7 +192,7 @@ impl Plugin for RustyChatTsPlugin {
         old_value: String,
         new_value: String,
     ) {
-       websocket::on_self_variable_update(server_id, flag, old_value, new_value);
+        websocket::on_self_variable_update(server_id, flag, old_value, new_value);
     }
 
     fn shutdown(&mut self, api: &mut TsApi) {
