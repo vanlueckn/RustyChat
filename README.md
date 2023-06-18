@@ -1,7 +1,9 @@
 # RustyChat
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/your-username/RustyChat/blob/main/LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/vanlueckn/RustyChat/blob/main/LICENSE)
 [![Crates.io](https://img.shields.io/crates/v/rustychat.svg)](https://crates.io/crates/rustychat)
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/vanlueckn/RustyChat/issues)
+[![forthebadge made-with-rust](http://ForTheBadge.com/images/badges/made-with-rust.svg)](https://www.rust-lang.org/)
 
 RustyChat is an open-source Rust library that serves as a drop-in replacement for SaltyChat, a popular voice communication plugin for Grand Theft Auto V (GTA V) multiplayer modifications like FiveM or alt:V. This library provides the necessary functionality to integrate voice chat into your Rust projects, allowing players to communicate with each other in real-time.
 
