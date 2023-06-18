@@ -2,11 +2,11 @@ pub mod protocol;
 
 use simple_websockets::{Event, EventHub, Message, Responder};
 use std::collections::HashMap;
-use tungstenite::handshake::server;
+use std::sync::{Arc, Mutex};
 
 use self::protocol::{
-    BulkUpdateParameter, Command, InitiateParameter, ParamMessageType, PlayerStateUpdateParameter,
-    PluginStateParameter, ProtocolMessage, SelfStateUpdateParameter,
+    Command, InitiateParameter, ParamMessageType, PlayerStateUpdateParameter, PluginStateParameter,
+    ProtocolMessage, SelfStateUpdateParameter,
 };
 
 const FAKE_SALTY_VERSION: &str = "2.3.6";
@@ -19,8 +19,6 @@ struct InstanceState {
 
 use crate::game::GameHandler;
 
-use self::protocol::{InitiateParameter, ParamMessageType, ProtocolMessage};
-
 pub fn start_listen(game_ref: Arc<Mutex<GameHandler>>) {
     let event_hub = simple_websockets::launch(9151).expect("failed to listen on port 9151");
     let mut clients: HashMap<u64, Responder> = HashMap::new();
@@ -30,7 +28,11 @@ pub fn start_listen(game_ref: Arc<Mutex<GameHandler>>) {
     });
 }
 
-fn websocket_loop(event_hub: &EventHub, clients: &mut HashMap<u64, Responder>) {
+fn websocket_loop(
+    event_hub: &EventHub,
+    clients: &mut HashMap<u64, Responder>,
+    game_ref: Arc<Mutex<GameHandler>>,
+) {
     let mut instance_state = InstanceState {
         instances: HashMap::new(),
         self_state_by_instance: HashMap::new(),
