@@ -1,7 +1,9 @@
 pub mod protocol;
 
+use anyhow::{anyhow, Result};
 use simple_websockets::{Event, EventHub, Message, Responder};
 use std::collections::HashMap;
+use std::error::Error;
 use std::sync::{Arc, Mutex};
 
 use self::protocol::{
@@ -365,7 +367,7 @@ pub fn on_sound_state_toggle(
     is_microphone_muted: bool,
     is_sound_enabled: bool,
     is_sound_muted: bool,
-) {
+) -> Result<()> {
     let sound_state_message = ParamMessageType::SoundStateParameter(SoundStateParameter {
         is_microphone_enabled,
         is_microphone_muted,
@@ -379,19 +381,26 @@ pub fn on_sound_state_toggle(
         parameter: Some(sound_state_message),
     };
 
-    let message = serde_json::to_string(&message).unwrap();
+    let message = serde_json::to_string(&message)?;
 
-    let client_id = clients_by_instance.get(server_id).unwrap();
+    let client_id = clients_by_instance.get(server_id).ok_or(anyhow!(
+        "ws client for server {} not found in list",
+        server_id
+    ))?;
 
     clients
         .get(&client_id)
-        .unwrap()
+        .ok_or(anyhow!(
+            "responder for client {} not found in list",
+            client_id
+        ))?
         .send(Message::Text(message));
+
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use tungstenite::client::connect;
     use url::Url;
 
