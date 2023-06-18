@@ -290,7 +290,8 @@ fn handle_remove_player(
 }
 
 fn handle_phone_communication_update(message: ParamMessageType) {
-    if let ParamMessageType::PhoneCommunicationUpdateParameter(_phone_communication_update) = message
+    if let ParamMessageType::PhoneCommunicationUpdateParameter(_phone_communication_update) =
+        message
     {
         // Handle phone communication update
     }
@@ -333,7 +334,8 @@ fn handle_radio_channel_update(message: ParamMessageType) {
 }
 
 fn handle_radio_channel_remove(message: ParamMessageType) {
-    if let ParamMessageType::RemoveRadioChannelMemberParameter(_radio_cannel_member_remove) = message
+    if let ParamMessageType::RemoveRadioChannelMemberParameter(_radio_cannel_member_remove) =
+        message
     {
         // Handle remove radio channel member
     }

@@ -14,10 +14,8 @@ pub fn show() -> iced::Result {
         ..iced::Settings::default()
     })
 }
-
 pub struct Settings {
     web_socket_address: String,
-    instance_timeout: u32,
     is_3d_enabled: bool,
     phone_offset: Option<StereoMode>,
     radio_offset: Option<StereoMode>,
@@ -98,18 +96,15 @@ impl Application for Settings {
     }
 
     fn new(_flags: ()) -> (Self, Command<Message>) {
-        (
-            Self {
-                web_socket_address: String::from("ws://localhost:31850"),
-                instance_timeout: 0,
-                is_3d_enabled: false,
-                phone_offset: Some(StereoMode::Stereo),
-                radio_offset: Some(StereoMode::Stereo),
-                secondary_radio_offset: Some(StereoMode::Stereo),
-                mic_click_mode: Some(MicClickMode::ScriptDependent),
-            },
-            Command::none(),
-        )
+        let me = Self {
+            web_socket_address: String::from("ws://localhost:31850"),
+            is_3d_enabled: false,
+            phone_offset: Some(StereoMode::Stereo),
+            radio_offset: Some(StereoMode::Stereo),
+            secondary_radio_offset: Some(StereoMode::Stereo),
+            mic_click_mode: Some(MicClickMode::ScriptDependent),
+        };
+        (me, Command::none())
     }
 
     fn view(&self) -> Element<Message> {

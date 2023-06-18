@@ -1,0 +1,5 @@
+{
+    "baseBranches": ["dev"],
+    "rebaseWhen": "behind-base-branch",
+    "extends": ["config:base", ":enableRenovate", ":semanticCommits"]
+}
