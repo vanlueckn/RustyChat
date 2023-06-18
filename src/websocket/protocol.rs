@@ -25,7 +25,7 @@ pub struct InitiateParameter {
     pub channel_password: String,
     pub sound_pack: String,
     pub swiss_channel_ids: Vec<u64>,
-    #[serde(default = "default_talk_state")]
+    #[serde(default = "default_ultra_short_range_distance")]
     pub ultra_short_range_distance: f32,
     #[serde(default = "default_short_range_distance")]
     pub short_range_distance: f32,
