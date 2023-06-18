@@ -2156,6 +2156,7 @@ dependencies = [
  "iir_filters",
  "lazy_static 1.4.0",
  "libdsp-sys",
+ "rand 0.8.5",
  "serde",
  "serde_json",
  "serde_repr",

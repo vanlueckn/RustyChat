@@ -10,6 +10,7 @@ struct RustyChatTsPlugin {
     low_pass: DirectForm2Transposed,
     band_pass: DirectForm2Transposed,
     high_pass: DirectForm2Transposed,
+    vol_follow: f32,
 }
 
 impl Plugin for RustyChatTsPlugin {
@@ -57,6 +58,7 @@ impl Plugin for RustyChatTsPlugin {
             low_pass,
             band_pass,
             high_pass,
+            vol_follow: 0.0,
         }))
     }
 
@@ -70,7 +72,7 @@ impl Plugin for RustyChatTsPlugin {
         channel_speaker_array: &[Speaker],
         channel_fill_mask: &mut u32,
     ) {
-        audiofx::process_radio(samples, &mut self.band_pass, &mut self.high_pass);
+        audiofx::process_radio(samples, &mut self.vol_follow);
     }
 
     fn captured_voice_data(
@@ -81,7 +83,7 @@ impl Plugin for RustyChatTsPlugin {
         channels: i32,
         send: &mut bool,
     ) -> bool {
-        audiofx::process_radio(samples, &mut self.band_pass, &mut self.high_pass);
+        audiofx::process_radio(samples, &mut self.vol_follow);
         true
     }
 

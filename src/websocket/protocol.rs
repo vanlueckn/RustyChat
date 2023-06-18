@@ -4,37 +4,37 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct ProtocolMessage {
-    command: u32,
-    server_unique_identifier: Option<String>,
-    parameter: Option<ParamMessageType>,
+    pub command: Command,
+    pub server_unique_identifier: Option<String>,
+    pub parameter: Option<ParamMessageType>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct PluginStateParameter {
-    version: String,
-    active_instances: u32,
+pub struct PluginStateParameter {
+    pub version: String,
+    pub active_instances: u32,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct InitiateParameter {
-    server_unique_identifier: String,
-    name: String,
-    channel_id: u64,
-    channel_password: String,
-    sound_pack: String,
-    swiss_channel_ids: Vec<u64>,
+pub struct InitiateParameter {
+    pub server_unique_identifier: String,
+    pub name: String,
+    pub channel_id: u64,
+    pub channel_password: String,
+    pub sound_pack: String,
+    pub swiss_channel_ids: Vec<u64>,
     #[serde(default = "default_talk_state")]
-    send_talk_states: bool,
+    pub send_talk_states: bool,
     #[serde(default = "default_radio_traffic_state")]
-    send_radio_traffic_states: bool,
+    pub send_radio_traffic_states: bool,
     #[serde(default = "default_ultra_short_range_distance")]
-    ultra_short_range_distance: f32,
+    pub ultra_short_range_distance: f32,
     #[serde(default = "default_short_range_distance")]
-    short_range_distance: f32,
+    pub short_range_distance: f32,
     #[serde(default = "default_long_range_distance")]
-    long_range_distance: f32,
+    pub long_range_distance: f32,
 }
 
 fn default_talk_state() -> bool {
@@ -59,30 +59,30 @@ fn default_long_range_distance() -> f32 {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct InstanceStateParameter {
-    is_connected_to_server: bool,
-    is_ready: bool,
-    state: GameInstanceState,
+pub struct InstanceStateParameter {
+    pub is_connected_to_server: bool,
+    pub is_ready: bool,
+    pub state: GameInstanceState,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct SoundStateParameter {
-    is_microphone_muted: bool,
-    is_microphone_enabled: bool,
-    is_sound_muted: bool,
-    is_sound_enabled: bool,
+pub struct SoundStateParameter {
+    pub is_microphone_muted: bool,
+    pub is_microphone_enabled: bool,
+    pub is_sound_muted: bool,
+    pub is_sound_enabled: bool,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct SelfStateUpdateParameter {
-    position: Vector3,
-    rotation: f32,
-    voice_range: f32,
+pub struct SelfStateUpdateParameter {
+    pub position: Vector3,
+    pub rotation: f32,
+    pub voice_range: f32,
     #[serde(default = "default_is_alive")]
-    is_alive: bool,
-    echo: Option<EchoEffect>,
+    pub is_alive: bool,
+    pub echo: Option<EchoEffect>,
 }
 
 fn default_is_alive() -> bool {
@@ -91,13 +91,13 @@ fn default_is_alive() -> bool {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct EchoEffect {
+pub struct EchoEffect {
     #[serde(default = "default_duration")]
-    duration: i32,
+    pub duration: i32,
     #[serde(default = "default_rolloff")]
-    rolloff: f32,
+    pub rolloff: f32,
     #[serde(default = "default_delay")]
-    delay: i32,
+    pub delay: i32,
 }
 
 fn default_duration() -> i32 {
@@ -112,23 +112,23 @@ fn default_delay() -> i32 {
     25
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "PascalCase")]
-struct PlayerStateUpdateParameter {
-    name: String,
-    position: Vector3,
-    rotation: f32,
-    voice_range: f32,
+pub struct PlayerStateUpdateParameter {
+    pub name: String,
+    pub position: Vector3,
+    pub rotation: f32,
+    pub voice_range: f32,
     #[serde(default = "default_is_alive")]
-    is_alive: bool,
-    volume_override: Option<f32>,
-    distance_culled: bool,
-    muffle: Option<MuffleEffect>,
+    pub is_alive: bool,
+    pub volume_override: Option<f32>,
+    pub distance_culled: bool,
+    pub muffle: Option<MuffleEffect>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, Copy)]
 #[serde(rename_all = "PascalCase")]
-struct MuffleEffect {
+pub struct MuffleEffect {
     #[serde(default = "default_intensity")]
     intensity: i32,
 }
@@ -139,88 +139,88 @@ fn default_intensity() -> i32 {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct BulkUpdateParameter {
-    player_states: Vec<PlayerStateUpdateParameter>,
-    self_state: PlayerStateUpdateParameter,
+pub struct BulkUpdateParameter {
+    pub player_states: Vec<PlayerStateUpdateParameter>,
+    pub self_state: SelfStateUpdateParameter,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct RemovePlayerParameter {
+pub struct RemovePlayerParameter {
+    pub name: String,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct TalkStateParameter {
+    pub name: String,
+    pub is_talking: bool,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct PlaySoundParameter {
+    pub file_name: String,
+    pub is_loop: bool,
+    pub handle: String,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct StopSoundParameter {
+    pub handle: String,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct PhoneCommunicationUpdateParameter {
+    pub name: String,
+    pub signal_strength: i32,
+    pub volume: Option<f32>,
+    pub direct: bool,
+    pub relayed_by: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct StopPhoneCommunicationParameter {
     name: String,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct TalkStateParameter {
-    name: String,
-    is_talking: bool,
+pub struct RadioCommunicationUpdateParameter {
+    pub name: String,
+    pub sender_radio_type: RadioType,
+    pub own_radio_type: RadioType,
+    pub play_mic_click: bool,
+    pub volume: Option<f32>,
+    pub direct: bool,
+    pub secondary: bool,
+    pub relayed_by: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct PlaySoundParameter {
-    file_name: String,
-    is_loop: bool,
-    handle: String,
+pub struct StopRadioCommunicationParameter {
+    pub name: String,
+    pub play_mic_click: bool,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct StopSoundParameter {
-    handle: String,
+pub struct RadioTowerUpdateParameter {
+    pub towers: Vec<Tower>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct PhoneCommunicationUpdateParameter {
-    name: String,
-    signal_strength: i32,
-    volume: Option<f32>,
-    direct: bool,
-    relayed_by: Vec<String>,
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-struct StopPhoneCommunicationParameter {
-    name: String,
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-struct RadioCommunicationUpdateParameter {
-    name: String,
-    sender_radio_type: RadioType,
-    own_radio_type: RadioType,
-    play_mic_click: bool,
-    volume: Option<f32>,
-    direct: bool,
-    secondary: bool,
-    relayed_by: Vec<String>,
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-struct StopRadioCommunicationParameter {
-    name: String,
-    play_mic_click: bool,
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-struct RadioTowerUpdateParameter {
-    towers: Vec<Tower>,
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-struct Tower {
-    x: f32,
-    y: f32,
-    z: f32,
+pub struct Tower {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
     #[serde(default = "default_range")]
-    range: f32,
+    pub range: f32,
 }
 
 fn default_range() -> f32 {
@@ -229,51 +229,51 @@ fn default_range() -> f32 {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct RadioTrafficStateParameter {
-    name: String,
-    is_sending: bool,
-    is_primary_channel: bool,
-    active_relay: String,
+pub struct RadioTrafficStateParameter {
+    pub name: String,
+    pub is_sending: bool,
+    pub is_primary_channel: bool,
+    pub active_relay: String,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct AddRadioChannelMemberParameter {
-    player_name: String,
-    is_primary_channel: bool,
+pub struct AddRadioChannelMemberParameter {
+    pub player_name: String,
+    pub is_primary_channel: bool,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct UpdateRadioChannelMembersParameter {
-    player_names: Vec<String>,
-    is_primary_channel: bool,
+pub struct UpdateRadioChannelMembersParameter {
+    pub player_names: Vec<String>,
+    pub is_primary_channel: bool,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct RemoveRadioChannelMemberParameter {
-    player_name: String,
-    is_primary_channel: bool,
+pub struct RemoveRadioChannelMemberParameter {
+    pub player_name: String,
+    pub is_primary_channel: bool,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct MegaphoneCommunicationUpdateParameter {
-    name: String,
-    range: f32,
-    volume: Option<f32>,
+pub struct MegaphoneCommunicationUpdateParameter {
+    pub name: String,
+    pub range: f32,
+    pub volume: Option<f32>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct StopMegaphoneCommunicationParameter {
-    name: String,
+pub struct StopMegaphoneCommunicationParameter {
+    pub name: String,
 }
 
 #[derive(Serialize_repr, Deserialize_repr)]
 #[repr(u8)]
-enum GameInstanceState {
+pub enum GameInstanceState {
     NotConnected = 0,
     Connected = 1,
     Ingame = 2,
@@ -282,7 +282,7 @@ enum GameInstanceState {
 
 #[derive(Serialize_repr, Deserialize_repr)]
 #[repr(u8)]
-enum RadioType {
+pub enum RadioType {
     None = 1,
     ShortRange = 2,
     LongRange = 4,
@@ -292,7 +292,7 @@ enum RadioType {
 
 #[derive(Serialize_repr, Deserialize_repr)]
 #[repr(u8)]
-enum Error {
+pub enum Error {
     OK = 0,
     InvalidJson = 1,
     NotConnectedToServer = 2,
@@ -304,18 +304,18 @@ enum Error {
     ServerUnderlicensed = 101,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, Copy)]
 #[serde(rename_all = "PascalCase")]
-struct Vector3 {
-    x: f32,
-    y: f32,
-    z: f32,
+pub struct Vector3 {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 #[serde(untagged)]
-enum ParamMessageType {
+pub enum ParamMessageType {
     PluginStateParameter(PluginStateParameter),
     InitiateParameter(InitiateParameter),
     InstanceStateParameter(InstanceStateParameter),
@@ -338,4 +338,44 @@ enum ParamMessageType {
     RemoveRadioChannelMemberParameter(RemoveRadioChannelMemberParameter),
     MegaphoneCommunicationUpdateParameter(MegaphoneCommunicationUpdateParameter),
     StopMegaphoneCommunicationParameter(StopMegaphoneCommunicationParameter),
+}
+
+#[derive(Serialize, Deserialize)]
+#[repr(u32)]
+pub enum Command {
+    // Plugin
+    PluginState = 0,
+
+    // Instance
+    Initiate = 1,
+    Reset = 2,
+    Ping = 3,
+    Pong = 4,
+    InstanceState = 5,
+    SoundState = 6,
+    SelfStateUpdate = 7,
+    PlayerStateUpdate = 8,
+    BulkUpdate = 9,
+    RemovePlayer = 10,
+    TalkState = 11,
+    PlaySound = 18,
+    StopSound = 19,
+
+    // Phone
+    PhoneCommunicationUpdate = 20,
+    StopPhoneCommunication = 21,
+
+    // Radio
+    RadioCommunicationUpdate = 30,
+    StopRadioCommunication = 31,
+    RadioTowerUpdate = 32,
+    RadioTrafficState = 33,
+
+    AddRadioChannelMember = 37,
+    UpdateRadioChannelMembers = 38,
+    RemoveRadioChannelMember = 39,
+
+    // Megaphone
+    MegaphoneCommunicationUpdate = 40,
+    StopMegaphoneCommunication = 41,
 }
