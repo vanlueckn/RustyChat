@@ -17,12 +17,16 @@ struct InstanceState {
     player_states_by_instance: HashMap<String, Vec<PlayerStateUpdateParameter>>,
 }
 
-pub fn start_listen() {
+use crate::game::GameHandler;
+
+use self::protocol::{InitiateParameter, ParamMessageType, ProtocolMessage};
+
+pub fn start_listen(game_ref: Arc<Mutex<GameHandler>>) {
     let event_hub = simple_websockets::launch(9151).expect("failed to listen on port 9151");
     let mut clients: HashMap<u64, Responder> = HashMap::new();
 
     std::thread::spawn(move || {
-        websocket_loop(&event_hub, &mut clients);
+        websocket_loop(&event_hub, &mut clients, game_ref);
     });
 }
 
@@ -35,6 +39,7 @@ fn websocket_loop(event_hub: &EventHub, clients: &mut HashMap<u64, Responder>) {
     loop {
         match event_hub.poll_event() {
             Event::Connect(client_id, responder) => {
+                game_ref.lock().unwrap().ws_connected();
                 println!("A client connected with id #{}", client_id);
                 handle_connect(&responder);
                 clients.insert(client_id, responder);
@@ -341,7 +346,7 @@ mod tests {
 
     #[test]
     fn test_websocket_server() {
-        start_listen();
+        //start_listen();
         std::thread::sleep(std::time::Duration::from_millis(250));
 
         let (mut socket, response) =

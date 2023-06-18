@@ -27,6 +27,7 @@ serde_repr = "0.1"
 iced = "0.9"
 iir_filters = "0.1.2"
 rand = "0.8.5"
+win32console = "0.1.0"
 
 [profile.release]
 opt-level = 'z'   # Optimize for size
