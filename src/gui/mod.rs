@@ -1,15 +1,23 @@
-use anyhow::{anyhow, Result};
+use std::path::{Path, PathBuf};
+
+use anyhow::{Context, Result};
 use iced::executor;
 use iced::theme::Theme;
 use iced::widget::{button, checkbox, column, container, pick_list, text, text_input};
 use iced::window;
 use iced::Application;
 use iced::{Command, Element, Length};
+use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
-pub fn show() -> iced::Result {
+
+static PLUGIN_PATH: OnceCell<String> = OnceCell::new();
+
+pub fn show(plugin_path_in: &str) -> iced::Result {
+    let _res = PLUGIN_PATH.set(plugin_path_in.to_owned());
     Settings::run(iced::Settings {
         window: window::Settings {
             size: (350, 500),
+            resizable: false,
             ..window::Settings::default()
         },
         ..iced::Settings::default()
@@ -133,7 +141,7 @@ impl Application for Settings {
                 self.mic_click_mode,
                 Message::MicClickMode
             ),
-            button("Ok").on_press(Message::Ok),
+            button("Save").on_press(Message::Ok),
         ]
         .spacing(10);
 
@@ -147,7 +155,7 @@ impl Application for Settings {
 
     fn update(&mut self, message: Message) -> Command<Message> {
         match message {
-            Message::Ok => {}
+            Message::Ok => save_settings(&self).unwrap(),
             Message::WebSocketChanged(value) => self.web_socket_address = value,
             Message::Has3dChanged(value) => self.is_3d_enabled = value,
             Message::PhoneOffset(value) => self.phone_offset = Some(value),
@@ -161,11 +169,12 @@ impl Application for Settings {
 }
 
 fn load_settings() -> Result<Settings> {
-    let cwd = std::env::current_dir()?;
+    let cwd = PathBuf::from(PLUGIN_PATH.get().unwrap());
     let settings_folder = cwd.join("RustyChat");
 
     if !settings_folder.exists() {
-        std::fs::create_dir(&settings_folder)?;
+        println!("Creating settings folder {}", settings_folder.display());
+        std::fs::create_dir(&settings_folder).context("Failed to create dir")?;
     }
 
     let settings_file = settings_folder.join("settings.json");
@@ -178,14 +187,27 @@ fn load_settings() -> Result<Settings> {
             secondary_radio_offset: Some(StereoMode::Stereo),
             mic_click_mode: Some(MicClickMode::ScriptDependent),
         };
-        let default_settings_json = serde_json::to_string_pretty(&default_settings)?;
-        std::fs::write(&settings_file, default_settings_json)?;
+        let default_settings_json = serde_json::to_string_pretty(&default_settings)
+            .context("Failed to serialize default settings")?;
+        std::fs::write(&settings_file, default_settings_json).context("Failed to write file")?;
     }
 
-    let settings_json = std::fs::read_to_string(&settings_file)?;
-    let settings: Settings = serde_json::from_str(&settings_json)?;
+    let settings_json =
+        std::fs::read_to_string(&settings_file).context("Failed to read settings file")?;
+    let settings: Settings =
+        serde_json::from_str(&settings_json).context("Failed to deserialize settings json")?;
 
     Ok(settings)
+}
+
+fn save_settings(settings: &Settings) -> Result<()> {
+    let res = serde_json::to_string_pretty(settings)?;
+    let cwd = PathBuf::from(PLUGIN_PATH.get().unwrap());
+    let settings_folder = cwd.join("RustyChat");
+    let settings_file = settings_folder.join("settings.json");
+    std::fs::write(&settings_file, res)?;
+
+    Ok(())
 }
 
 #[cfg(test)]

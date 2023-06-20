@@ -2,7 +2,10 @@ mod audiofx;
 mod game;
 mod gui;
 mod websocket;
-use std::sync::{Arc, Mutex};
+use std::{
+    env::current_exe,
+    sync::{Arc, Mutex, RwLock},
+};
 
 use anyhow::Result;
 use game::GameHandler;
@@ -49,7 +52,7 @@ impl Plugin for RustyChatTsPlugin {
     }
 
     fn configure(&mut self, _api: &mut TsApi) {
-        let _res = gui::show();
+        let _res = gui::show(&_api.get_plugin_path());
     }
 
     fn connect_status_change(

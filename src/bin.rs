@@ -1,5 +1,5 @@
 mod gui;
 
 fn main() {
-    let _ = gui::show();
+    let _ = gui::show("");
 }
