@@ -1,26 +1,30 @@
+mod sound;
+
 use anyhow::Result;
 use iir_filters::filter::DirectForm2Transposed;
 use iir_filters::filter::Filter;
 use iir_filters::filter_design::butter;
 use iir_filters::filter_design::FilterType;
 use iir_filters::sos::zpk2sos;
-use libdsp_sys::root::DSP::DigitalDelay;
 use rand::prelude::*;
+use rasp::delay::LinearDelay;
+use rasp::traits::Processor;
 
-const DELAY_AMOUNT: usize = 50;
-const DELAY_FEEDBACK: f32 = 0.7;
-const DELAY_WET: f32 = 0.7;
+const DELAY_SAMPLE_RATE: f32 = 48000.0;
+const DELAY_MAX_SECONDS: usize = 3;
+const DELAY_SAMPLES: f32 = 1300.5;
 const I16_MAX: f32 = (i16::MAX as f32) + 1.0;
 const I16_MAX_64: f64 = (i16::MAX as f64) + 1.0;
-fn init_delay() -> DigitalDelay {
-    unsafe { DigitalDelay::new(DELAY_AMOUNT, DELAY_FEEDBACK, DELAY_WET) }
+fn init_delay() -> LinearDelay<f32> {
+    LinearDelay::new(
+        DELAY_SAMPLES,
+        DELAY_MAX_SECONDS * DELAY_SAMPLE_RATE as usize,
+    )
 }
 
-pub fn process_delay(input: &mut [i16], delay: &mut DigitalDelay) {
-    unsafe {
-        for sample in input.iter_mut() {
-            *sample = (delay.getNextSample(*sample as f32 / I16_MAX) * I16_MAX) as i16;
-        }
+pub fn process_delay(input: &mut [i16], delay: &mut LinearDelay<f32>) {
+    for sample in input.iter_mut() {
+        *sample = (delay.process(*sample as f32 / I16_MAX) * I16_MAX) as i16;
     }
 }
 

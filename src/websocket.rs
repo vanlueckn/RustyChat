@@ -24,7 +24,7 @@ lazy_static! {
     static ref CLIENTS: Mutex<HashMap<u64, Responder>> = Mutex::from(HashMap::new());
     static ref CLIENTS_BY_INSTANCE: Mutex<HashMap<String, u64>> = Mutex::from(HashMap::new());
 }
-use crate::game::{GameHandler, initiate_rusty_server};
+use crate::game::{initiate_rusty_server, GameHandler};
 
 pub fn start_listen() {
     let event_hub = simple_websockets::launch(9151).expect("failed to listen on port 9151");
@@ -68,9 +68,7 @@ fn websocket_loop(event_hub: &EventHub) -> Result<()> {
                             std::result::Result::Ok(parsed_message) => match parsed_message.command
                             {
                                 Command::Initiate => {
-                                    handle_init(
-                                        parsed_message.parameter.unwrap()
-                                    );
+                                    handle_init(parsed_message.parameter.unwrap());
                                 }
                                 Command::Ping => {
                                     handle_ping(
