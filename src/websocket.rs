@@ -1,7 +1,6 @@
 pub mod protocol;
 
 use anyhow::{anyhow, Ok, Result};
-use iced::futures::lock;
 use once_cell::sync::Lazy;
 use simple_websockets::{Event, EventHub, Message, Responder};
 use std::collections::HashMap;
@@ -395,7 +394,7 @@ fn handle_sound_stop(message: ParamMessageType, server_id: u64) -> Result<()> {
 
 //Events RustyChat Outgoing to be handled by the plugin:
 // 1. SoundState (on mic and speaker toggle) X
-// 2. TalkState (on start and on stop talking)
+// 2. TalkState (on start and on stop talking) X
 // 3. RadioTrafficState (Sent by the plugin when radio traffic is received, breaks up or ends.)
 
 pub fn on_sound_state_toggle(

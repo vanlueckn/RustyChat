@@ -3,6 +3,8 @@ mod game;
 mod gui;
 mod websocket;
 
+use std::ffi::c_float;
+
 use iir_filters::filter::DirectForm2Transposed;
 use ts3plugin::*;
 
@@ -163,6 +165,17 @@ impl Plugin for RustyChatTsPlugin {
         new_value: String,
     ) {
         websocket::on_self_variable_update(server_id, flag, old_value, new_value);
+    }
+
+    fn ev_3drollof_calculation(
+        &mut self,
+        _api: &mut TsApi,
+        _server_id: ServerId,
+        _client_id: ConnectionId,
+        _distance: f32,
+        volume: &mut f32,
+    ) {
+        volume.clone_from(&1_f32);
     }
 
     fn shutdown(&mut self, api: &mut TsApi) {
