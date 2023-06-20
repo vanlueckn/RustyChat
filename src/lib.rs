@@ -3,10 +3,13 @@ mod game;
 mod gui;
 mod websocket;
 
-use std::ffi::c_float;
+use std::{
+    ffi::{c_char, c_float, CStr, CString},
+    fmt,
+};
 
 use iir_filters::filter::DirectForm2Transposed;
-use ts3plugin::*;
+use ts3plugin::{ts3interface::PluginItemType, *};
 
 struct RustyChatTsPlugin {
     low_pass: DirectForm2Transposed,
@@ -176,6 +179,48 @@ impl Plugin for RustyChatTsPlugin {
         volume: &mut f32,
     ) {
         volume.clone_from(&1_f32);
+    }
+
+    fn info_data(
+        &mut self,
+        api: &mut TsApi,
+        _server_id: ServerId,
+        id: u64,
+        type_: PluginItemType,
+        data: *mut *mut c_char,
+    ) {
+        let data_string: &str;
+        let channel_formatted: String;
+        if type_ == PluginItemType::PLUGIN_CHANNEL {}
+
+        match type_ {
+            PluginItemType::PLUGIN_SERVER => {
+                let server = api.get_server(ServerId(id)).unwrap().get_uid().unwrap();
+                data_string = server;
+            }
+            PluginItemType::PLUGIN_CHANNEL => {
+                channel_formatted = format!("Channel Id: {}", id);
+                data_string = channel_formatted.as_str()
+            }
+            _ => return,
+        }
+
+        unsafe {
+            let str_tmp = CString::new(data_string).unwrap();
+            let channel_name_override = str_tmp.as_c_str();
+            let mut memory = std::alloc::alloc(std::alloc::Layout::new::<*mut c_char>());
+
+            std::ptr::copy_nonoverlapping::<u8>(
+                str_tmp.as_ptr().cast::<u8>(),
+                memory as *mut u8,
+                channel_name_override.to_bytes().len(),
+            );
+
+            //create a raw pointer to memory
+            let channel_name_ptr: *mut *mut u8 = &mut memory;
+
+            ::core::ptr::swap(data, channel_name_ptr.cast::<*mut i8>());
+        }
     }
 
     fn shutdown(&mut self, api: &mut TsApi) {

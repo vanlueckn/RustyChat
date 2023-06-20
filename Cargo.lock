@@ -2797,7 +2797,7 @@ dependencies = [
 [[package]]
 name = "ts3plugin"
 version = "0.3.1"
-source = "git+https://github.com/ClutchFred/rust-ts3plugin#6240a4a2b479dccdd5288fa8bbec547347bc2eb9"
+source = "git+https://github.com/ClutchFred/rust-ts3plugin#d40bc502f02009eb7950cfa06aecdbb3e0b9854b"
 dependencies = [
  "chrono",
  "lazy_static",
