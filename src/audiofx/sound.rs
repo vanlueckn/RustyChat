@@ -15,7 +15,7 @@ pub fn play_sound(
     sound: &mut Sound,
     sound_pack_name: &str,
     server_id: u64,
-) -> anyhow::Result<(), anyhow::Error> {
+) -> anyhow::Result<u64, anyhow::Error> {
     sound.wave_handle = 0;
     let api = TsApi::lock_api().ok_or(anyhow!("Could not lock api"))?;
     let plugin_path = PathBuf::from(api.get_plugin_path());
@@ -40,7 +40,7 @@ pub fn play_sound(
 
     let _res = server.play_wave_file_handle(path, sound.is_loop, &mut sound.wave_handle);
 
-    anyhow::Ok(())
+    anyhow::Ok(sound.wave_handle)
 }
 
 pub fn stop_playing(sound: &Sound, api: &mut TsApi, server_id: u64) {

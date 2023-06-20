@@ -345,19 +345,28 @@ fn handle_megaphone_stop(message: ParamMessageType) {
     }
 }
 
-fn handle_sound_play(message: ParamMessageType, server_id: u64) {
+fn handle_sound_play(message: ParamMessageType, server_id: u64) -> Result<String> {
     if let ParamMessageType::PlaySoundParameter(play_sound_p) = message {
-        let _res = play_sound(
+        let file_name = play_sound_p.file_name.to_owned();
+        let file_handle = play_sound_p.handle.to_owned();
+        let _wave_handle = play_sound(
             &mut Sound {
                 file_name: play_sound_p.file_name,
-                is_loop: false,
-                handle: "".to_owned(),
+                is_loop: play_sound_p.is_loop,
+                handle: play_sound_p.handle,
                 wave_handle: 0,
             },
             "default",
             server_id,
-        );
+        )?;
+
+        return Ok(if file_handle.is_empty() {
+            file_name
+        } else {
+            file_handle
+        });
     }
+    Ok(String::new())
 }
 
 fn handle_sound_stop(message: ParamMessageType) {
