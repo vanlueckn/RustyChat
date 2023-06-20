@@ -1,0 +1,8 @@
+{
+  "web_socket_address": "ws://localhost:31850",
+  "is_3d_enabled": false,
+  "phone_offset": "Stereo",
+  "radio_offset": "Stereo",
+  "secondary_radio_offset": "Stereo",
+  "mic_click_mode": "ScriptDependent"
+}

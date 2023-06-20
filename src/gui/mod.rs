@@ -1,10 +1,11 @@
+use anyhow::{anyhow, Result};
 use iced::executor;
 use iced::theme::Theme;
 use iced::widget::{button, checkbox, column, container, pick_list, text, text_input};
 use iced::window;
 use iced::Application;
 use iced::{Command, Element, Length};
-
+use serde::{Deserialize, Serialize};
 pub fn show() -> iced::Result {
     Settings::run(iced::Settings {
         window: window::Settings {
@@ -14,6 +15,8 @@ pub fn show() -> iced::Result {
         ..iced::Settings::default()
     })
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Settings {
     web_socket_address: String,
     is_3d_enabled: bool,
@@ -23,7 +26,7 @@ pub struct Settings {
     mic_click_mode: Option<MicClickMode>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum StereoMode {
     Stereo,
     LeftOnly,
@@ -48,7 +51,7 @@ impl std::fmt::Display for StereoMode {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub enum MicClickMode {
     #[default]
     ScriptDependent,
@@ -74,7 +77,7 @@ impl std::fmt::Display for MicClickMode {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Message {
     Ok,
     WebSocketChanged(String),
@@ -96,14 +99,7 @@ impl Application for Settings {
     }
 
     fn new(_flags: ()) -> (Self, Command<Message>) {
-        let me = Self {
-            web_socket_address: String::from("ws://localhost:31850"),
-            is_3d_enabled: false,
-            phone_offset: Some(StereoMode::Stereo),
-            radio_offset: Some(StereoMode::Stereo),
-            secondary_radio_offset: Some(StereoMode::Stereo),
-            mic_click_mode: Some(MicClickMode::ScriptDependent),
-        };
+        let me = load_settings().unwrap();
         (me, Command::none())
     }
 
@@ -161,5 +157,48 @@ impl Application for Settings {
         }
 
         Command::none()
+    }
+}
+
+fn load_settings() -> Result<Settings> {
+    let cwd = std::env::current_dir()?;
+    let settings_folder = cwd.join("RustyChat");
+
+    if !settings_folder.exists() {
+        std::fs::create_dir(&settings_folder)?;
+    }
+
+    let settings_file = settings_folder.join("settings.json");
+    if !settings_file.exists() {
+        let default_settings = Settings {
+            web_socket_address: String::from("ws://localhost:31850"),
+            is_3d_enabled: false,
+            phone_offset: Some(StereoMode::Stereo),
+            radio_offset: Some(StereoMode::Stereo),
+            secondary_radio_offset: Some(StereoMode::Stereo),
+            mic_click_mode: Some(MicClickMode::ScriptDependent),
+        };
+        let default_settings_json = serde_json::to_string_pretty(&default_settings)?;
+        std::fs::write(&settings_file, default_settings_json)?;
+    }
+
+    let settings_json = std::fs::read_to_string(&settings_file)?;
+    let settings: Settings = serde_json::from_str(&settings_json)?;
+
+    Ok(settings)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_settings() {
+        let _res = load_settings();
+
+        assert!(std::env::current_dir()
+            .unwrap()
+            .join("RustyChat/settings.json")
+            .exists());
     }
 }

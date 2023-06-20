@@ -61,9 +61,6 @@ pub fn initiate_rusty_server(params: InitiateParameter) {
     ts_join_channel(&inst, &api_lock);
 
     games_lock.insert(params.server_unique_identifier, inst);
-
-
-
 }
 
 pub fn get_server_by_uid<'a>(ts_api: &'a mut TsApi, uid: &String) -> Result<&'a Server> {
@@ -105,6 +102,12 @@ pub fn ts_join_channel(game: &GameHandler, ts_api: &TsApiLock) {
     unsafe {
         let raw_api: &ts3plugin::Ts3Functions = ts_api.get_raw_api();
         let c: i8 = 0;
-        (raw_api.request_client_move)(game.server_id, game.own_client_id, game.game_channel, &c, &c);
+        (raw_api.request_client_move)(
+            game.server_id,
+            game.own_client_id,
+            game.game_channel,
+            &c,
+            &c,
+        );
     }
 }

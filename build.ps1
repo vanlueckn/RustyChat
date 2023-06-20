@@ -1,11 +1,14 @@
 # Builds a .ts3_plugin file for teamspeak 3. Only for development, the ci will build the plugin itself
-# 7z is required
 $ErrorActionPreference = "stop"
 
 $ts3_package_dir = "./ts3_package"
 $ts3_plugin_dll_dir = "$($ts3_package_dir)/plugins"
 $plugin_name = "rustychat"
 $ts3_plugin_output = ".\$($plugin_name).ts3_plugin"
+
+if (Test-Path $ts3_plugin_output) {
+    Remove-Item $ts3_plugin_output
+}
 
 cargo b
 Remove-Item "$($ts3_plugin_dll_dir)/*.dll"
