@@ -5,14 +5,13 @@ use std::{
 };
 
 use anyhow::{anyhow, Result};
-use ts3plugin::{ChannelId, ConnectionId, Server, ServerId, TsApi, TsApiLock, Visibility};
-use tungstenite::handshake::server;
+use once_cell::sync::Lazy;
+use ts3plugin::{Server, TsApi, TsApiLock};
 
 use crate::websocket::protocol::InitiateParameter;
 
-lazy_static! {
-    static ref GAME_INSTANCES: Mutex<HashMap<String, GameHandler>> = Mutex::from(HashMap::new());
-}
+static GAME_INSTANCES: Lazy<Mutex<HashMap<String, GameHandler>>> =
+    Lazy::new(|| Mutex::from(HashMap::new()));
 
 pub struct GameHandler {
     pub server_id: u64,

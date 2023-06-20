@@ -1,4 +1,4 @@
-mod sound;
+pub mod sound;
 
 use anyhow::Result;
 use iir_filters::filter::DirectForm2Transposed;

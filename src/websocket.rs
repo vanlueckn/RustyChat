@@ -1,11 +1,12 @@
 pub mod protocol;
 
 use anyhow::{anyhow, Ok, Result};
+use once_cell::sync::Lazy;
 use simple_websockets::{Event, EventHub, Message, Responder};
 use std::collections::HashMap;
 
-use std::sync::{Arc, Mutex};
-use ts3plugin::{ClientProperties, ServerId};
+use std::sync::Mutex;
+use ts3plugin::{ClientProperties, ServerId, TsApi};
 
 use self::protocol::{
     Command, InitiateParameter, ParamMessageType, PlayerStateUpdateParameter, PluginStateParameter,
@@ -20,11 +21,14 @@ struct InstanceState {
     player_states_by_instance: HashMap<String, Vec<PlayerStateUpdateParameter>>,
 }
 
-lazy_static! {
-    static ref CLIENTS: Mutex<HashMap<u64, Responder>> = Mutex::from(HashMap::new());
-    static ref CLIENTS_BY_INSTANCE: Mutex<HashMap<String, u64>> = Mutex::from(HashMap::new());
-}
-use crate::game::{initiate_rusty_server, GameHandler};
+static CLIENTS: Lazy<Mutex<HashMap<u64, Responder>>> = Lazy::new(|| Mutex::from(HashMap::new()));
+static CLIENTS_BY_INSTANCE: Lazy<Mutex<HashMap<String, u64>>> =
+    Lazy::new(|| Mutex::from(HashMap::new()));
+
+use crate::{
+    audiofx::sound::{play_sound, Sound},
+    game::initiate_rusty_server,
+};
 
 pub fn start_listen() {
     let event_hub = simple_websockets::launch(9151).expect("failed to listen on port 9151");
@@ -54,6 +58,7 @@ fn websocket_loop(event_hub: &EventHub) -> Result<()> {
             }
             Event::Message(client_id, message) => {
                 let clients_locked = CLIENTS.lock().unwrap();
+                let server_id = 0;
                 println!(
                     "Received a message from client #{}: {:?}",
                     client_id, message
@@ -105,7 +110,7 @@ fn websocket_loop(event_hub: &EventHub) -> Result<()> {
                                     );
                                 }
                                 Command::PlaySound => {
-                                    handle_sound_play(parsed_message.parameter.unwrap());
+                                    handle_sound_play(parsed_message.parameter.unwrap(), server_id);
                                 }
                                 Command::StopSound => {
                                     handle_sound_stop(parsed_message.parameter.unwrap());
@@ -340,9 +345,18 @@ fn handle_megaphone_stop(message: ParamMessageType) {
     }
 }
 
-fn handle_sound_play(message: ParamMessageType) {
-    if let ParamMessageType::PlaySoundParameter(_play_sound) = message {
-        // Handle play sound
+fn handle_sound_play(message: ParamMessageType, server_id: u64) {
+    if let ParamMessageType::PlaySoundParameter(play_sound_p) = message {
+        let test = play_sound(
+            &mut Sound {
+                file_name: play_sound_p.file_name,
+                is_loop: false,
+                handle: "".to_owned(),
+                wave_handle: 0,
+            },
+            "default",
+            server_id,
+        );
     }
 }
 
