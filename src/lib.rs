@@ -2,11 +2,10 @@ mod audiofx;
 mod game;
 mod gui;
 mod websocket;
-use std::{ffi::CString, path::PathBuf};
 
-use anyhow::anyhow;
 use iir_filters::filter::DirectForm2Transposed;
 use ts3plugin::*;
+
 struct RustyChatTsPlugin {
     low_pass: DirectForm2Transposed,
     band_pass: DirectForm2Transposed,
@@ -65,11 +64,11 @@ impl Plugin for RustyChatTsPlugin {
     fn connection_move(
         &mut self,
         _api: &mut TsApi,
-        server_id: ServerId,
-        connection_id: ConnectionId,
+        _server_id: ServerId,
+        _connection_id: ConnectionId,
         _old_channel_id: ChannelId,
-        new_channel_id: ChannelId,
-        visibility: Visibility,
+        _new_channel_id: ChannelId,
+        _visibility: Visibility,
     ) {
         println!("move");
     }
@@ -77,11 +76,11 @@ impl Plugin for RustyChatTsPlugin {
     fn connection_moved(
         &mut self,
         _api: &mut TsApi,
-        server_id: ServerId,
-        connection_id: ConnectionId,
+        _server_id: ServerId,
+        _connection_id: ConnectionId,
         _old_channel_id: ChannelId,
-        new_channel_id: ChannelId,
-        visibility: Visibility,
+        _new_channel_id: ChannelId,
+        _visibility: Visibility,
         _invoker: Invoker,
     ) {
         println!("moved");

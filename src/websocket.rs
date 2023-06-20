@@ -6,7 +6,7 @@ use simple_websockets::{Event, EventHub, Message, Responder};
 use std::collections::HashMap;
 
 use std::sync::Mutex;
-use ts3plugin::{ClientProperties, ServerId, TsApi};
+use ts3plugin::{ClientProperties, ServerId};
 
 use self::protocol::{
     Command, InitiateParameter, ParamMessageType, PlayerStateUpdateParameter, PluginStateParameter,
@@ -347,7 +347,7 @@ fn handle_megaphone_stop(message: ParamMessageType) {
 
 fn handle_sound_play(message: ParamMessageType, server_id: u64) {
     if let ParamMessageType::PlaySoundParameter(play_sound_p) = message {
-        let test = play_sound(
+        let _res = play_sound(
             &mut Sound {
                 file_name: play_sound_p.file_name,
                 is_loop: false,

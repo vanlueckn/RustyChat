@@ -1,4 +1,4 @@
-use std::{ffi::CString, path::PathBuf};
+use std::path::PathBuf;
 
 use anyhow::anyhow;
 use ts3plugin::{ServerId, TsApi};
@@ -31,11 +31,6 @@ pub fn play_sound(
         .find(|&path| path.exists())
         .ok_or_else(|| anyhow::anyhow!("Sound file not found: {}", sound.file_name))?;
 
-    let c_str = CString::new(
-        path.to_str()
-            .ok_or(anyhow::anyhow!("Could not convert to cstring"))?,
-    )?;
-
     let server = api
         .get_server(ServerId(server_id))
         .ok_or(anyhow!("Could not get server"))?;
@@ -43,7 +38,7 @@ pub fn play_sound(
         .to_str()
         .ok_or(anyhow::anyhow!("Could not convert to cstring"))?;
 
-    server.play_wave_file_handle(path, sound.is_loop, &mut sound.wave_handle);
+    let _res = server.play_wave_file_handle(path, sound.is_loop, &mut sound.wave_handle);
 
     anyhow::Ok(())
 }
