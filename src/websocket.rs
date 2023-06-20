@@ -1,6 +1,7 @@
 pub mod protocol;
 
 use anyhow::{anyhow, Ok, Result};
+use iced::futures::lock;
 use once_cell::sync::Lazy;
 use simple_websockets::{Event, EventHub, Message, Responder};
 use std::collections::HashMap;
@@ -21,12 +22,15 @@ struct InstanceState {
     player_states_by_instance: HashMap<String, Vec<PlayerStateUpdateParameter>>,
 }
 
+static SOUNDS_BY_HANDLE: Lazy<Mutex<HashMap<String, Sound>>> =
+    Lazy::new(|| Mutex::from(HashMap::new()));
+
 static CLIENTS: Lazy<Mutex<HashMap<u64, Responder>>> = Lazy::new(|| Mutex::from(HashMap::new()));
 static CLIENTS_BY_INSTANCE: Lazy<Mutex<HashMap<String, u64>>> =
     Lazy::new(|| Mutex::from(HashMap::new()));
 
 use crate::{
-    audiofx::sound::{play_sound, Sound},
+    audiofx::sound::{play_sound, stop_playing, Sound},
     game::initiate_rusty_server,
 };
 
@@ -110,10 +114,16 @@ fn websocket_loop(event_hub: &EventHub) -> Result<()> {
                                     );
                                 }
                                 Command::PlaySound => {
-                                    handle_sound_play(parsed_message.parameter.unwrap(), server_id);
+                                    handle_sound_play(
+                                        parsed_message.parameter.unwrap(),
+                                        server_id,
+                                    )?;
                                 }
                                 Command::StopSound => {
-                                    handle_sound_stop(parsed_message.parameter.unwrap());
+                                    let _res = handle_sound_stop(
+                                        parsed_message.parameter.unwrap(),
+                                        server_id,
+                                    );
                                 }
                                 Command::PhoneCommunicationUpdate => {
                                     handle_phone_communication_update(
@@ -345,34 +355,42 @@ fn handle_megaphone_stop(message: ParamMessageType) {
     }
 }
 
-fn handle_sound_play(message: ParamMessageType, server_id: u64) -> Result<String> {
+fn handle_sound_play(message: ParamMessageType, server_id: u64) -> Result<()> {
     if let ParamMessageType::PlaySoundParameter(play_sound_p) = message {
         let file_name = play_sound_p.file_name.to_owned();
         let file_handle = play_sound_p.handle.to_owned();
-        let _wave_handle = play_sound(
-            &mut Sound {
-                file_name: play_sound_p.file_name,
-                is_loop: play_sound_p.is_loop,
-                handle: play_sound_p.handle,
-                wave_handle: 0,
-            },
-            "default",
-            server_id,
-        )?;
+        let mut sound = Sound {
+            file_name: play_sound_p.file_name,
+            is_loop: play_sound_p.is_loop,
+            handle: play_sound_p.handle,
+            wave_handle: 0,
+        };
+        let _wave_handle = play_sound(&mut sound, "default", server_id)?;
 
-        return Ok(if file_handle.is_empty() {
-            file_name
+        let mut locked_sounds = SOUNDS_BY_HANDLE.lock().unwrap();
+
+        if file_handle.is_empty() {
+            locked_sounds.insert(file_name, sound);
         } else {
-            file_handle
-        });
+            locked_sounds.insert(file_handle, sound);
+        }
     }
-    Ok(String::new())
+    Ok(())
 }
 
-fn handle_sound_stop(message: ParamMessageType) {
+fn handle_sound_stop(message: ParamMessageType, server_id: u64) -> Result<()> {
     if let ParamMessageType::StopSoundParameter(_stop_sound) = message {
-        // Handle stop sound
+        let mut locked_sounds = SOUNDS_BY_HANDLE.lock().unwrap();
+
+        if locked_sounds.contains_key(&_stop_sound.handle) {
+            let sound = locked_sounds
+                .get_mut(&_stop_sound.handle)
+                .ok_or(anyhow!("Could not lock sounds"))?;
+            let _res = stop_playing(sound, server_id);
+        }
     }
+
+    Ok(())
 }
 
 //Events RustyChat Outgoing to be handled by the plugin:

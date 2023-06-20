@@ -43,6 +43,12 @@ pub fn play_sound(
     anyhow::Ok(sound.wave_handle)
 }
 
-pub fn stop_playing(sound: &Sound, api: &mut TsApi, server_id: u64) {
-    let _num = unsafe { (api.get_raw_api().close_wave_file_handle)(server_id, sound.wave_handle) };
+pub fn stop_playing(sound: &Sound, server_id: u64) -> anyhow::Result<()> {
+    let api = TsApi::lock_api().unwrap();
+    let server = api
+        .get_server(ServerId(server_id))
+        .ok_or(anyhow!("Could not get server"))?;
+
+    server.close_wave_file_handle(sound.wave_handle);
+    Ok(())
 }
