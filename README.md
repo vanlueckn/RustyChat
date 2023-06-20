@@ -1,6 +1,6 @@
 # RustyChat
 
-[![forthebadge made-with-rust](http://ForTheBadge.com/images/badges/made-with-rust.svg)](https://www.rust-lang.org/)\
+[![forthebadge made-with-rust](https://ForTheBadge.com/images/badges/made-with-rust.svg)](https://www.rust-lang.org/)\
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/vanlueckn/RustyChat/blob/main/LICENSE)
 [![Crates.io](https://img.shields.io/crates/v/rustychat.svg)](https://crates.io/crates/rustychat)
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/vanlueckn/RustyChat/issues)
@@ -14,6 +14,7 @@ RustyChat is an open-source Rust library that serves as a drop-in replacement fo
 - Open Source: RustyChat is licensed under the MIT license (free and open source software).
 - Written in Rust: Rust is a very performant low level language but still memory safe.
 - Open for contributions: We welcome contributions from the community to help improve and extend the functionality of RustyChat.
+- Platform indepentent: RustyChat compiles for windows and linux.
 
 ## Installation
 
