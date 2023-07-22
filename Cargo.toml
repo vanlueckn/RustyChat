@@ -19,7 +19,7 @@ serde_json = "1.0"
 ts3plugin = { git = "https://github.com/ClutchFred/rust-ts3plugin" }
 rasp = { git = "https://github.com/buosseph/rasp" }
 simple-websockets = "0.1.6"
-tungstenite = "0.19.0"
+tungstenite = "0.20.0"
 url = "2.4.0"
 serde_repr = "0.1"
 iced = "0.9"
